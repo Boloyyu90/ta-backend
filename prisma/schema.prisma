@@ -19,6 +19,7 @@ model User {
   role      UserRole @default(PARTICIPANT)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  isEmailVerified  Boolean   @default(false)
   
   // Relations
   tokens       Token[]
