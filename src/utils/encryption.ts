@@ -8,5 +8,3 @@ export const encryptPassword = async (password: string) => {
 export const isPasswordMatch = async (password: string, userPassword: string) => {
   return bcrypt.compare(password, userPassword);
 };
-
-// asdfbasuid f
