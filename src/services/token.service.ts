@@ -47,7 +47,7 @@ const saveToken = async (
   type: TokenType,
   blacklisted = false
 ): Promise<Token> => {
-  const createdToken = prisma.token.create({
+  const createdToken = await prisma.token.create({
     data: {
       token,
       userId: userId,
@@ -66,7 +66,7 @@ const saveToken = async (
  * @returns {Promise<Token>}
  */
 const verifyToken = async (token: string, type: TokenType): Promise<Token> => {
-  const payload = jwt.verify(token, config.jwt.secret);
+  const payload = jwt.verify(token, config.jwt.secret) as any;
   const userId = Number(payload.sub);
   const tokenData = await prisma.token.findFirst({
     where: { token, type, userId, blacklisted: false }
@@ -113,8 +113,8 @@ const generateResetPasswordToken = async (email: string): Promise<string> => {
     throw new ApiError(httpStatus.NOT_FOUND, 'No users found with this email');
   }
   const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
-  const resetPasswordToken = generateToken(user.id as number, expires, TokenType.RESET_PASSWORD);
-  await saveToken(resetPasswordToken, user.id as number, expires, TokenType.RESET_PASSWORD);
+  const resetPasswordToken = generateToken(user.id, expires, TokenType.RESET_PASSWORD);
+  await saveToken(resetPasswordToken, user.id, expires, TokenType.RESET_PASSWORD);
   return resetPasswordToken;
 };
 
@@ -123,7 +123,7 @@ const generateResetPasswordToken = async (email: string): Promise<string> => {
  * @param {User} user
  * @returns {Promise<string>}
  */
-const generateVerifyEmailToken = async (user: { id: number }): Promise<string> => {
+const generateVerifyEmailToken = async (user: any): Promise<string> => {
   const expires = moment().add(config.jwt.verifyEmailExpirationMinutes, 'minutes');
   const verifyEmailToken = generateToken(user.id, expires, TokenType.VERIFY_EMAIL);
   await saveToken(verifyEmailToken, user.id, expires, TokenType.VERIFY_EMAIL);

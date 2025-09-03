@@ -3,12 +3,14 @@ import { password } from './custom.validation';
 
 const register = {
   body: Joi.object().keys({
+    name: Joi.string().required(), // Add name field
     email: Joi.string().required().email(),
-    name: Joi.string().required(),
-    password: Joi.string().required().custom(password)
+    password: Joi.string().required().custom(password),
+    role: Joi.string().valid('ADMIN', 'PARTICIPANT').default('PARTICIPANT') // Add role
   })
 };
 
+// Keep other validations as they were...
 const login = {
   body: Joi.object().keys({
     email: Joi.string().required(),

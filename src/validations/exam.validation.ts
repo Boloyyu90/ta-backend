@@ -1,0 +1,63 @@
+import Joi from 'joi';
+
+const createExam = {
+  body: Joi.object().keys({
+    title: Joi.string().required(),
+    description: Joi.string().allow(''),
+    startTime: Joi.date().iso(),
+    endTime: Joi.date().iso().greater(Joi.ref('startTime')),
+    durationMinutes: Joi.number().integer().min(1),
+    questions: Joi.array().items(
+      Joi.object().keys({
+        questionId: Joi.number().integer().required(),
+        orderNumber: Joi.number().integer().min(1),
+        scoreOverride: Joi.number().integer().min(1)
+      })
+    )
+  })
+};
+
+const getExams = {
+  query: Joi.object().keys({
+    title: Joi.string(),
+    createdBy: Joi.number().integer(),
+    limit: Joi.number().integer(),
+    page: Joi.number().integer()
+  })
+};
+
+const getExam = {
+  params: Joi.object().keys({
+    id: Joi.number().integer().required()
+  }),
+  query: Joi.object().keys({
+    include: Joi.string().valid('questions')
+  })
+};
+
+const startExam = {
+  params: Joi.object().keys({
+    id: Joi.number().integer().required()
+  })
+};
+
+const updateExam = {
+  params: Joi.object().keys({
+    id: Joi.number().integer().required()
+  }),
+  body: Joi.object().keys({
+    title: Joi.string(),
+    description: Joi.string().allow(''),
+    startTime: Joi.date().iso(),
+    endTime: Joi.date().iso(),
+    durationMinutes: Joi.number().integer().min(1)
+  }).min(1)
+};
+
+export default {
+  createExam,
+  getExams,
+  getExam,
+  startExam,
+  updateExam
+};

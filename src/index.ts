@@ -1,15 +1,25 @@
-import { Server } from 'http';
 import app from './app';
-import prisma from './client';
 import config from './config/config';
 import logger from './config/logger';
+import http from 'http';
+import { Server } from 'socket.io';
+import { setupProctoringWebSocket } from './websocket/proctoring.handler';
 
-let server: Server;
-prisma.$connect().then(() => {
-  logger.info('Connected to SQL Database');
-  server = app.listen(config.port, () => {
-    logger.info(`Listening to port ${config.port}`);
-  });
+const server = http.createServer(app);
+
+// Setup Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: '*', // Configure this properly for production
+    methods: ['GET', 'POST']
+  }
+});
+
+// Setup WebSocket handlers
+setupProctoringWebSocket(io);
+
+server.listen(config.port, () => {
+  logger.info(`Listening to port ${config.port}`);
 });
 
 const exitHandler = () => {

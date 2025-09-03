@@ -1,12 +1,20 @@
 import express from 'express';
 import authRoute from './auth.route';
 import userRoute from './user.route';
-import docsRoute from './docs.route';
+import questionBankRoute from './questionBank.route';
+import examRoute from './exam.route';
+import userExamRoute from './userExam.route';
+import proctoringRoute from './proctoring.route';
 import config from '../../config/config';
 
 const router = express.Router();
 
-const defaultRoutes = [
+interface RouteConfig {
+  path: string;
+  route: express.Router;
+}
+
+const defaultRoutes: RouteConfig[] = [
   {
     path: '/auth',
     route: authRoute
@@ -14,15 +22,31 @@ const defaultRoutes = [
   {
     path: '/users',
     route: userRoute
+  },
+  {
+    path: '/questionbank',
+    route: questionBankRoute
+  },
+  {
+    path: '/exams',
+    route: examRoute
+  },
+  {
+    path: '/user-exams',
+    route: userExamRoute
+  },
+  {
+    path: '/proctoring',
+    route: proctoringRoute
   }
 ];
 
-const devRoutes = [
+const devRoutes: RouteConfig[] = [
   // routes available only in development mode
-  {
-    path: '/docs',
-    route: docsRoute
-  }
+  // {
+  //   path: '/docs',
+  //   route: docsRoute
+  // }
 ];
 
 defaultRoutes.forEach((route) => {
