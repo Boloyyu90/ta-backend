@@ -6,10 +6,30 @@ import { User } from '@prisma/client';
 
 const register = catchAsync(async (req: any, res: any) => {
   const { email, password, name, role } = req.body;
+
+  // Create user
   const user = await userService.createUser(email, password, name, role);
   const userWithoutPassword = exclude(user, ['password', 'createdAt', 'updatedAt']);
+
+  // Generate tokens
   const tokens = await tokenService.generateAuthTokens(user);
-  res.status(httpStatus.CREATED).send({ user: userWithoutPassword, tokens });
+
+  // Auto-send verification email
+  try {
+    const verifyEmailToken = await tokenService.generateVerifyEmailToken(user);
+    await emailService.sendVerificationEmail(user.email, verifyEmailToken);
+    console.log(`Verification email sent to ${user.email}`);
+  } catch (error) {
+    console.error(`Failed to send verification email to ${user.email}:`, error);
+    // Don't fail registration - log error and continue
+  }
+
+  res.status(httpStatus.CREATED).send({
+    user: userWithoutPassword,
+    tokens,
+    message: 'Registration successful. Please check your email to verify your account.',
+    emailVerificationRequired: true
+  });
 });
 
 const login = catchAsync(async (req: any, res: any) => {
@@ -52,6 +72,16 @@ const verifyEmail = catchAsync(async (req: any, res: any) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const testEmail = catchAsync(async (req: any, res: any) => {
+  const { email } = req.body;
+  await emailService.sendTestEmail(email);
+  res.send({
+    message: 'Test email sent successfully',
+    recipient: email,
+    timestamp: new Date().toISOString()
+  });
+});
+
 export default {
   register,
   login,
@@ -60,5 +90,6 @@ export default {
   forgotPassword,
   resetPassword,
   sendVerificationEmail,
-  verifyEmail
+  verifyEmail,
+  testEmail // Add this
 };

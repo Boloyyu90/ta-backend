@@ -26,6 +26,8 @@ router.post(
 );
 router.post('/send-verification-email', auth(), authController.sendVerificationEmail);
 router.post('/verify-email', validate(authValidation.verifyEmail), authController.verifyEmail);
+router.get('/verify-email', validate(authValidation.verifyEmail), authController.verifyEmail);
+router.post('/test-email', validate(authValidation.testEmail), authController.testEmail);
 
 export default router;
 

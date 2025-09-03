@@ -51,6 +51,12 @@ const verifyEmail = {
   })
 };
 
+const testEmail = {
+  body: Joi.object().keys({
+    email: Joi.string().email().required()
+  })
+};
+
 export default {
   register,
   login,
@@ -58,5 +64,6 @@ export default {
   refreshTokens,
   forgotPassword,
   resetPassword,
-  verifyEmail
+  verifyEmail,
+  testEmail // Add this
 };
