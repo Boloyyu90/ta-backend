@@ -19,11 +19,13 @@ const verifyCallback =
     req.user = user;
 
     if (requiredRights.length) {
-      const userRights = roleRights.get(user.role) ?? [];
-      const hasRequiredRights = requiredRights.every((requiredRight) =>
-        userRights.includes(requiredRight)
-      );
-      if (!hasRequiredRights && req.params.userId !== user.id) {
+      const userRights = roleRights.get(user.role) || [];
+      const hasRequiredRights = requiredRights.every((r) => userRights.includes(r));
+
+      const sameUser =
+        req.params?.userId !== undefined ? String(req.params.userId) === String(user.id) : false;
+
+      if (!hasRequiredRights && !sameUser) {
         return reject(new ApiError(httpStatus.FORBIDDEN, 'Forbidden'));
       }
     }

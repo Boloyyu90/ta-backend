@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 /**
  * Encrypt password
@@ -21,4 +22,9 @@ export const isPasswordMatch = async (
   hashedPassword: string
 ): Promise<boolean> => {
   return bcrypt.compare(password, hashedPassword);
+};
+
+
+export const sha256 = (input: string): string => {
+  return crypto.createHash('sha256').update(input).digest('hex');
 };

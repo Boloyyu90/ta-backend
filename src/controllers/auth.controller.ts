@@ -68,8 +68,22 @@ const sendVerificationEmail = catchAsync(async (req: any, res: any) => {
 });
 
 const verifyEmail = catchAsync(async (req: any, res: any) => {
-  await authService.verifyEmail(req.query.token as string);
-  res.status(httpStatus.NO_CONTENT).send();
+  try {
+    await authService.verifyEmail(req.query.token as string);
+    return res.status(200).send(`<!doctype html><html><head><meta charset="utf-8" />
+        <title>Email Verified</title></head>
+        <body style="font-family:system-ui;padding:24px;max-width:680px;margin:auto">
+          <h2>✅ Email berhasil diverifikasi</h2>
+          <p>Akun Anda sudah aktif. Anda dapat menutup halaman ini.</p>
+        </body></html>`);
+  } catch (e: any) {
+    return res.status(400).send(`<!doctype html><html><head><meta charset="utf-8" />
+        <title>Email Verification Failed</title></head>
+        <body style="font-family:system-ui;padding:24px;max-width:680px;margin:auto">
+          <h2>❌ Verifikasi gagal</h2>
+          <p>${e?.message || 'Token verifikasi tidak valid atau sudah kedaluwarsa.'}</p>
+        </body></html>`);
+  }
 });
 
 const testEmail = catchAsync(async (req: any, res: any) => {

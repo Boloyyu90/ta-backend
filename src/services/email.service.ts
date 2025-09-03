@@ -45,22 +45,17 @@ If you did not request any password resets, then ignore this email.`;
  */
 const sendVerificationEmail = async (to: string, token: string): Promise<void> => {
   const subject = 'Email Verification - Tryout System';
-  // Link langsung ke API endpoint
-  const verificationEmailUrl = `http://localhost:3000/v1/auth/verify-email?token=${token}`;
+  const base = config.urls?.verifyEmail || 'http://localhost:3000/v1/auth/verify-email';
+  const sep = base.includes('?') ? '&' : '?';
+  const verificationEmailUrl = `${base}${sep}token=${encodeURIComponent(token)}`;
 
-  const text = `Dear user,
+  const text = `Hello,
 
-Welcome to Tryout System!
+Please verify your email by clicking on the following link:
 
-To verify your email address, click on this link:
 ${verificationEmailUrl}
 
-This link will expire in 10 minutes.
-
-If you did not create an account, please ignore this email.
-
-Best regards,
-Tryout System Team`;
+If you did not create an account, then ignore this email.`;
 
   await sendEmail(to, subject, text);
 };

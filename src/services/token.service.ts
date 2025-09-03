@@ -7,6 +7,7 @@ import ApiError from '../utils/ApiError';
 import { Token, TokenType } from '@prisma/client';
 import prisma from '../client';
 import { AuthTokensResponse } from '../types/response';
+import { sha256 } from '../utils/encryption';
 
 /**
  * Generate token
@@ -49,7 +50,7 @@ const saveToken = async (
 ): Promise<Token> => {
   const createdToken = await prisma.token.create({
     data: {
-      token,
+      tokenHash: sha256(token),
       userId: userId,
       expires: expires.toDate(),
       type,
@@ -69,7 +70,7 @@ const verifyToken = async (token: string, type: TokenType): Promise<Token> => {
   const payload = jwt.verify(token, config.jwt.secret) as any;
   const userId = Number(payload.sub);
   const tokenData = await prisma.token.findFirst({
-    where: { token, type, userId, blacklisted: false }
+  where: { tokenHash: sha256(token), type, blacklisted: false }
   });
   if (!tokenData) {
     throw new Error('Token not found');

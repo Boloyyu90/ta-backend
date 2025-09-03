@@ -4,7 +4,7 @@ import userService from './user.service';
 import ApiError from '../utils/ApiError';
 import { TokenType, User } from '@prisma/client';
 import prisma from '../client';
-import { encryptPassword, isPasswordMatch } from '../utils/encryption';
+import { encryptPassword, isPasswordMatch, sha256 } from '../utils/encryption';
 import { AuthTokensResponse } from '../types/response';
 import exclude from '../utils/exclude';
 
@@ -31,6 +31,9 @@ const loginUserWithEmailAndPassword = async (
   if (!user || !(await isPasswordMatch(password, user.password))) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
   }
+  if (!user.isEmailVerified) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Email is not verified');
+  }
   return exclude(user, ['password']);
 };
 
@@ -39,14 +42,15 @@ const loginUserWithEmailAndPassword = async (
  * @param {string} refreshToken
  * @returns {Promise}
  */
-const logout = async (refreshToken: string): Promise<void> => {
-  const refreshTokenData = await prisma.token.findFirst({
-    where: { token: refreshToken, type: TokenType.REFRESH, blacklisted: false }
+export const logout = async (refreshToken: string) => {
+  // hash dulu supaya cocok dengan yang ada di DB
+  const tokenDoc = await prisma.token.findFirst({
+    where: { tokenHash: sha256(refreshToken), type: TokenType.REFRESH }
   });
-  if (!refreshTokenData) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Not found');
+  if (!tokenDoc) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Token not found');
   }
-  await prisma.token.delete({ where: { id: refreshTokenData.id } });
+  await prisma.token.delete({ where: { id: tokenDoc.id } });
 };
 
 /**

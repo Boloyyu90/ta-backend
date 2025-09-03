@@ -151,7 +151,8 @@ model ProctoringEvent {
 // Authentication Token Management
 model Token {
   id          Int       @id @default(autoincrement())
-  token       String
+  token       String?   
+  tokenHash   String
   type        TokenType
   expires     DateTime
   blacklisted Boolean
@@ -162,6 +163,7 @@ model Token {
   user User @relation(fields: [userId], references: [id])
   
   @@index([userId])
+  @@index([tokenHash])
   @@index([type])
 }
 
