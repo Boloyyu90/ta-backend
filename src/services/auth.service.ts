@@ -31,6 +31,9 @@ const loginUserWithEmailAndPassword = async (
   if (!user || !(await isPasswordMatch(password, user.password))) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
   }
+  if (!user.isEmailVerified) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Email not verified');
+  }
   return exclude(user, ['password']);
 };
 

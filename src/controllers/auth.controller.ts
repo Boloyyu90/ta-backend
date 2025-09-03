@@ -11,9 +11,6 @@ const register = catchAsync(async (req: any, res: any) => {
   const user = await userService.createUser(email, password, name, role);
   const userWithoutPassword = exclude(user, ['password', 'createdAt', 'updatedAt']);
 
-  // Generate tokens
-  const tokens = await tokenService.generateAuthTokens(user);
-
   // Auto-send verification email
   try {
     const verifyEmailToken = await tokenService.generateVerifyEmailToken(user);
@@ -26,7 +23,6 @@ const register = catchAsync(async (req: any, res: any) => {
 
   res.status(httpStatus.CREATED).send({
     user: userWithoutPassword,
-    tokens,
     message: 'Registration successful. Please check your email to verify your account.',
     emailVerificationRequired: true
   });

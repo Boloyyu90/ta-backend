@@ -52,11 +52,7 @@ describe('Auth routes', () => {
         role: Role.USER,
         isEmailVerified: false
       });
-
-      expect(res.body.tokens).toEqual({
-        access: { token: expect.anything(), expires: expect.anything() },
-        refresh: { token: expect.anything(), expires: expect.anything() }
-      });
+      expect(res.body).not.toHaveProperty('tokens');
     });
 
     test('should return 400 error if email is invalid', async () => {
@@ -91,7 +87,7 @@ describe('Auth routes', () => {
 
   describe('POST /v1/auth/login', () => {
     test('should return 200 and login user if email and password match', async () => {
-      await insertUsers([userOne]);
+      await insertUsers([{ ...userOne, isEmailVerified: true }]);
       const loginCredentials = {
         email: userOne.email,
         password: userOne.password
@@ -107,7 +103,7 @@ describe('Auth routes', () => {
         name: userOne.name,
         email: userOne.email,
         role: userOne.role,
-        isEmailVerified: userOne.isEmailVerified
+        isEmailVerified: true
       });
 
       expect(res.body.user).toEqual(expect.not.objectContaining({ password: expect.anything() }));
@@ -115,6 +111,24 @@ describe('Auth routes', () => {
       expect(res.body.tokens).toEqual({
         access: { token: expect.anything(), expires: expect.anything() },
         refresh: { token: expect.anything(), expires: expect.anything() }
+      });
+    });
+
+    test('should return 401 error if email is not verified', async () => {
+      await insertUsers([userOne]);
+      const loginCredentials = {
+        email: userOne.email,
+        password: userOne.password
+      };
+
+      const res = await request(app)
+        .post('/v1/auth/login')
+        .send(loginCredentials)
+        .expect(httpStatus.UNAUTHORIZED);
+
+      expect(res.body).toEqual({
+        code: httpStatus.UNAUTHORIZED,
+        message: 'Email not verified'
       });
     });
 
@@ -136,7 +150,7 @@ describe('Auth routes', () => {
     });
 
     test('should return 401 error if password is wrong', async () => {
-      await insertUsers([userOne]);
+      await insertUsers([{ ...userOne, isEmailVerified: true }]);
       const loginCredentials = {
         email: userOne.email,
         password: 'wrongPassword1'
