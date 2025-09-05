@@ -63,7 +63,6 @@ model ExamQuestion {
   examId         Int          @map("exam_id")
   questionId     Int          @map("question_id")
   orderNumber    Int?         @map("order_number")
-  score_override Int?
   answers        Answer[]
   exam           Exam         @relation(fields: [examId], references: [id])
   question       QuestionBank @relation(fields: [questionId], references: [id])
