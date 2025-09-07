@@ -11,7 +11,7 @@ const createExam = async (examData: {
   endTime?: Date;
   durationMinutes?: number;
   createdBy: number;
-  questions?: { questionId: number; orderNumber?: number; scoreOverride?: number }[];
+  questions?: { questionId: number; orderNumber?: number}[];
 }) => {
   const { questions, ...examInfo } = examData;
 
@@ -26,7 +26,6 @@ const createExam = async (examData: {
           examId: exam.id,
           questionId: q.questionId,
           orderNumber: q.orderNumber || index + 1,
-          scoreOverride: q.scoreOverride
         }))
       });
     }
