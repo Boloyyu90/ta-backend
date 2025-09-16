@@ -20,9 +20,9 @@ const createExam = {
 const getExams = {
   query: Joi.object().keys({
     title: Joi.string(),
-    createdBy: Joi.number().integer(),
     limit: Joi.number().integer(),
-    page: Joi.number().integer()
+    page: Joi.number().integer(),
+    search: Joi.string()
   })
 };
 
@@ -45,13 +45,15 @@ const updateExam = {
   params: Joi.object().keys({
     id: Joi.number().integer().required()
   }),
-  body: Joi.object().keys({
-    title: Joi.string(),
-    description: Joi.string().allow(''),
-    startTime: Joi.date().iso(),
-    endTime: Joi.date().iso(),
-    durationMinutes: Joi.number().integer().min(1)
-  }).min(1)
+  body: Joi.object()
+    .keys({
+      title: Joi.string(),
+      description: Joi.string().allow(''),
+      startTime: Joi.date().iso(),
+      endTime: Joi.date().iso(),
+      durationMinutes: Joi.number().integer().min(1)
+    })
+    .min(1)
 };
 
 export default {

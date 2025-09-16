@@ -1,6 +1,7 @@
 import httpStatus from 'http-status';
 import catchAsync from '../utils/catchAsync';
 import { examService } from '../services';
+import { error } from 'console';
 
 const createExam = catchAsync(async (req: any, res: any) => {
   const examData = {
@@ -13,9 +14,9 @@ const createExam = catchAsync(async (req: any, res: any) => {
 
 const getExams = catchAsync(async (req: any, res: any) => {
   const filter = {
-    createdBy: req.user.role === 'ADMIN' ? undefined : req.user.id,
     limit: req.query.limit ? parseInt(req.query.limit) : undefined,
-    page: req.query.page ? parseInt(req.query.page) : undefined
+    page: req.query.page ? parseInt(req.query.page) : undefined,
+    search: req.query.search ?? ""
   };
   const result = await examService.getExams(filter);
   res.send(result);

@@ -18,7 +18,7 @@ const submitAnswer = async (userExamId: number, examQuestionId: number, selected
     throw new ApiError(httpStatus.BAD_REQUEST, 'Exam session is not active');
   }
 
-  // Get question details to check correct answer
+  // Get question details untuk cek jawaban benar
   const examQuestion = await prisma.examQuestion.findUnique({
     where: { id: examQuestionId },
     include: { question: true }
@@ -30,7 +30,7 @@ const submitAnswer = async (userExamId: number, examQuestionId: number, selected
 
   const isCorrect = examQuestion.question.correctAnswer === selectedOption;
 
-  // Upsert answer (update if exists, create if not)
+  // Upsert answer (update jika ada, dan create jika belum ada)
   return await prisma.answer.upsert({
     where: {
       userExamId_examQuestionId: {
@@ -72,10 +72,10 @@ const finishExam = async (userExamId: number) => {
       throw new ApiError(httpStatus.NOT_FOUND, 'Exam session not found');
     }
 
-    // Calculate total score - SIMPLIFIED: use only defaultScore from question_bank
+    // Kalkulasi total score(simplifikasi dengan total defaultScore tiap soal)
     const totalScore = userExam.answers.reduce((score, answer) => {
       if (answer.isCorrect) {
-        // Simple scoring: use question's defaultScore directly
+
         return score + answer.examQuestion.question.defaultScore;
       }
       return score;
@@ -185,50 +185,9 @@ const getAllExamResults = async (examId?: number) => {
   });
 };
 
-// Helper function for exam statistics (useful for proctoring analysis)
-const getExamStatistics = async (examId: number) => {
-  const examStats = await prisma.userExam.findMany({
-    where: { examId },
-    include: {
-      answers: {
-        include: {
-          examQuestion: {
-            include: { question: true }
-          }
-        }
-      },
-      proctoringEvents: true
-    }
-  });
-
-  const totalParticipants = examStats.length;
-  const completedExams = examStats.filter((ue) => ue.status === 'FINISHED').length;
-  const averageScore =
-    totalParticipants > 0
-      ? examStats.reduce((sum, ue) => sum + (ue.totalScore || 0), 0) / totalParticipants
-      : 0;
-
-  // Proctoring violations summary
-  const proctoringViolations = examStats.reduce((acc, ue) => {
-    ue.proctoringEvents.forEach((event) => {
-      acc[event.eventType] = (acc[event.eventType] || 0) + 1;
-    });
-    return acc;
-  }, {} as Record<string, number>);
-
-  return {
-    totalParticipants,
-    completedExams,
-    completionRate: totalParticipants > 0 ? (completedExams / totalParticipants) * 100 : 0,
-    averageScore: Math.round(averageScore * 100) / 100,
-    proctoringViolations
-  };
-};
-
 export default {
   submitAnswer,
   finishExam,
   getUserExamResults,
-  getAllExamResults,
-  getExamStatistics
+  getAllExamResults
 };

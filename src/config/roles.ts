@@ -1,14 +1,16 @@
 import { UserRole } from '@prisma/client';
 
 const allRoles = {
-  [UserRole.PARTICIPANT]: ['takeExam', 'viewResults'],
+  [UserRole.PARTICIPANT]: ['takeExam', 'viewResults', 'getExams', 'allAccess'],
   [UserRole.ADMIN]: [
-    'getUsers', 
+    'getUsers',
     'manageUsers',
     'manageQuestions',
     'manageExams',
+    'takeExam',
     'viewAllResults',
-    'viewProctoringEvents'
+    'viewProctoringEvents',
+    'allAccess'
   ]
 };
 

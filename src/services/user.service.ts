@@ -5,7 +5,7 @@ import ApiError from '../utils/ApiError';
 import { encryptPassword } from '../utils/encryption';
 
 /**
- * Create a user
+ * Create user
  * @param {string} email
  * @param {string} password
  * @param {string} name
@@ -32,7 +32,7 @@ const createUser = async (
 };
 
 /**
- * Query for users
+ * Query semua users
  * @param {Object} filter - Prisma filter
  * @param {Object} options - Query options
  * @param {string} [options.sortBy] - Sort option in the format: sortField:(desc|asc)
@@ -73,7 +73,7 @@ const queryUsers = async <Key extends keyof User>(
 };
 
 /**
- * Get user by id
+ * Get user berdasarkan id
  * @param {number} id
  * @param {Array<Key>} keys
  * @returns {Promise<Pick<User, Key> | null>}
@@ -97,7 +97,7 @@ const getUserById = async <Key extends keyof User>(
 };
 
 /**
- * Get user by email
+ * Get user berdasarkan email
  * @param {string} email
  * @param {Array<Key>} keys
  * @returns {Promise<Pick<User, Key> | null>}
@@ -121,7 +121,7 @@ const getUserByEmail = async <Key extends keyof User>(
 };
 
 /**
- * Update user by id
+ * Update user berdasarkan id
  * @param {number} userId
  * @param {Object} updateBody
  * @returns {Promise<User>}
@@ -150,7 +150,7 @@ const updateUserById = async <Key extends keyof User>(
 };
 
 /**
- * Delete user by id
+ * Delete user berdasarkan id
  * @param {number} userId
  * @returns {Promise<User>}
  */

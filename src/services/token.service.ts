@@ -33,7 +33,7 @@ const generateToken = (
 };
 
 /**
- * Save a token
+ * Simpan sebuah token
  * @param {string} token
  * @param {number} userId
  * @param {Moment} expires
@@ -61,7 +61,7 @@ const saveToken = async (
 };
 
 /**
- * Verify token and return token doc (or throw an error if it is not valid)
+ * Verifikasi token dan kembalikan doc token(atau munculkan error jika ternyata tidak valid)
  * @param {string} token
  * @param {string} type
  * @returns {Promise<Token>}

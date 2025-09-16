@@ -9,7 +9,7 @@ import { AuthTokensResponse } from '../types/response';
 import exclude from '../utils/exclude';
 
 /**
- * Login with username and password
+ * Login dengan email dan password
  * @param {string} email
  * @param {string} password
  * @returns {Promise<Omit<User, 'password'>>}

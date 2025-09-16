@@ -11,7 +11,7 @@ const transport = nodemailer.createTransport({
 });
 
 /**
- * Send an email
+ * Kirim sebuah email
  * @param {string} to
  * @param {string} subject
  * @param {string} text
@@ -23,7 +23,7 @@ const sendEmail = async (to: string, subject: string, text: string): Promise<voi
 };
 
 /**
- * Send reset password email
+ * Kirim email reset password
  * @param {string} to
  * @param {string} token
  * @returns {Promise}
@@ -38,7 +38,7 @@ If you did not request any password resets, then ignore this email.`;
 };
 
 /**
- * Send verification email
+ * Kirim email verifikasi
  * @param {string} to
  * @param {string} token
  * @returns {Promise}

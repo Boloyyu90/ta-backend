@@ -11,7 +11,7 @@ const createExam = async (examData: {
   endTime?: Date;
   durationMinutes?: number;
   createdBy: number;
-  questions?: { questionId: number; orderNumber?: number}[];
+  questions?: { questionId: number; orderNumber?: number }[];
 }) => {
   const { questions, ...examInfo } = examData;
 
@@ -25,7 +25,7 @@ const createExam = async (examData: {
         data: questions.map((q, index) => ({
           examId: exam.id,
           questionId: q.questionId,
-          orderNumber: q.orderNumber || index + 1,
+          orderNumber: q.orderNumber || index + 1
         }))
       });
     }
@@ -38,7 +38,35 @@ const getExams = async (filter: {
   createdBy?: number;
   limit?: number;
   page?: number;
+  search?: string;
 }) => {
+  const skip = filter.page ? (filter.page - 1) * (filter.limit || 10) : 0;
+  const take = filter.limit || 10;
+
+  const [exams, total] = await Promise.all([
+    prisma.exam.findMany({
+      where: filter.search ? { title: { contains: filter.search, mode: 'insensitive' } } : {},
+      skip,
+      take,
+      include: {
+        creator: {
+          select: { id: true, name: true, email: true }
+        },
+        _count: {
+          select: { examQuestions: true, userExams: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    }),
+    prisma.exam.count({
+      where: filter.search ? { title: { contains: filter.search, mode: 'insensitive' } } : {}
+    })
+  ]);
+
+  return { exams, total };
+};
+
+const getExamsbyAdmin = async (filter: { createdBy?: number; limit?: number; page?: number }) => {
   const skip = filter.page ? (filter.page - 1) * (filter.limit || 10) : 0;
   const take = filter.limit || 10;
 
@@ -61,7 +89,6 @@ const getExams = async (filter: {
     }),
     prisma.exam.count({ where })
   ]);
-
   return { exams, total };
 };
 
@@ -72,12 +99,14 @@ const getExamById = async (id: number, includeQuestions = false) => {
       creator: {
         select: { id: true, name: true, email: true }
       },
-      examQuestions: includeQuestions ? {
-        include: {
-          question: true
-        },
-        orderBy: { orderNumber: 'asc' }
-      } : false,
+      examQuestions: includeQuestions
+        ? {
+            include: {
+              question: true
+            },
+            orderBy: { orderNumber: 'asc' }
+          }
+        : false,
       _count: {
         select: { examQuestions: true, userExams: true }
       }
@@ -99,18 +128,18 @@ const updateExam = async (id: number, updateData: any) => {
 };
 
 const startExam = async (examId: number, userId: number) => {
-  // Check if exam exists and is available
+  //Cek existensi ujian dan apakah tersedia atau tidak
   const exam = await getExamById(examId);
-  
+
   if (exam.startTime && new Date() < exam.startTime) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Exam has not started yet');
   }
-  
+
   if (exam.endTime && new Date() > exam.endTime) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Exam has ended');
   }
 
-  // Check if user already has an active session
+  // Cek status sesi user dan apakah aktif atau tidak
   const existingSession = await prisma.userExam.findUnique({
     where: { userId_examId: { userId, examId } }
   });
@@ -122,7 +151,7 @@ const startExam = async (examId: number, userId: number) => {
     return existingSession;
   }
 
-  // Create new exam session
+  // Buat sesi ujian baru
   return await prisma.userExam.create({
     data: {
       userId,
@@ -136,6 +165,7 @@ const startExam = async (examId: number, userId: number) => {
 export default {
   createExam,
   getExams,
+  getExamsbyAdmin,
   getExamById,
   updateExam,
   startExam

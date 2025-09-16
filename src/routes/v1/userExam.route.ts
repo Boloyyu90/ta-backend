@@ -16,11 +16,7 @@ router
 
 router
   .route('/:id/finish')
-  .post(
-    auth('takeExam'),
-    validate(userExamValidation.finishExam),
-    userExamController.finishExam
-  );
+  .post(auth('takeExam'), validate(userExamValidation.finishExam), userExamController.finishExam);
 
 router
   .route('/results')
