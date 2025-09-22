@@ -70,19 +70,19 @@ const sendVerificationEmail = catchAsync(async (req: any, res: any) => {
 const verifyEmail = catchAsync(async (req: any, res: any) => {
   try {
     await authService.verifyEmail(req.query.token as string);
-    return res.status(200).send(`<!doctype html><html><head><meta charset="utf-8" />
-        <title>Email Verified</title></head>
-        <body style="font-family:system-ui;padding:24px;max-width:680px;margin:auto">
-          <h2>✅ Email berhasil diverifikasi</h2>
-          <p>Akun Anda sudah aktif. Anda dapat menutup halaman ini.</p>
-        </body></html>`);
-  } catch (e: any) {
-    return res.status(400).send(`<!doctype html><html><head><meta charset="utf-8" />
-        <title>Email Verification Failed</title></head>
-        <body style="font-family:system-ui;padding:24px;max-width:680px;margin:auto">
-          <h2>❌ Verifikasi gagal</h2>
-          <p>${e?.message || 'Token verifikasi tidak valid atau sudah kedaluwarsa.'}</p>
-        </body></html>`);
+    return res.status(httpStatus.OK).json({
+      status: 'success',
+      message: 'Email verified successfully.'
+    });
+  } catch (error: any) {
+    const statusCode =
+      typeof error?.statusCode === 'number' ? error.statusCode : httpStatus.INTERNAL_SERVER_ERROR;
+    const message = error?.message || 'Email verification failed.';
+
+    return res.status(statusCode).json({
+      status: 'error',
+      message
+    });
   }
 });
 

@@ -1,8 +1,15 @@
-import { PrismaClient, ExamStatus } from '@prisma/client';
+import prisma from '../client';
 import httpStatus from 'http-status';
 import ApiError from '../utils/ApiError';
 
-const prisma = new PrismaClient();
+type AnswerWithQuestion = {
+  isCorrect: boolean | null;
+  examQuestion: {
+    question: {
+      defaultScore: number;
+    };
+  };
+};
 
 const submitAnswer = async (userExamId: number, examQuestionId: number, selectedOption: string) => {
   const userExam = await prisma.userExam.findUnique({
@@ -26,6 +33,10 @@ const submitAnswer = async (userExamId: number, examQuestionId: number, selected
 
   if (!examQuestion) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Question not found');
+  }
+
+  if (examQuestion.examId !== userExam.examId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Question does not belong to this exam');
   }
 
   const isCorrect = examQuestion.question.correctAnswer === selectedOption;
@@ -54,7 +65,7 @@ const submitAnswer = async (userExamId: number, examQuestionId: number, selected
 };
 
 const finishExam = async (userExamId: number) => {
-  return await prisma.$transaction(async (tx) => {
+  return await prisma.$transaction(async (tx: any) => {
     const userExam = await tx.userExam.findUnique({
       where: { id: userExamId },
       include: {
@@ -73,7 +84,7 @@ const finishExam = async (userExamId: number) => {
     }
 
     // Kalkulasi total score(simplifikasi dengan total defaultScore tiap soal)
-    const totalScore = userExam.answers.reduce((score, answer) => {
+    const totalScore = userExam.answers.reduce((score: number, answer: AnswerWithQuestion) => {
       if (answer.isCorrect) {
 
         return score + answer.examQuestion.question.defaultScore;
@@ -136,53 +147,71 @@ const getUserExamResults = async (userId: number, examId?: number) => {
   });
 };
 
-const getAllExamResults = async (examId?: number) => {
+const getAllExamResults = async (
+  examId?: number,
+  pagination: { limit?: number; page?: number } = {}
+) => {
   const where = examId ? { examId } : {};
+  const limit = pagination.limit && pagination.limit > 0 ? pagination.limit : 10;
+  const page = pagination.page && pagination.page > 0 ? pagination.page : 1;
+  const skip = (page - 1) * limit;
 
-  return await prisma.userExam.findMany({
-    where,
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true
-        }
-      },
-      exam: {
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          durationMinutes: true
-        }
-      },
-      answers: {
-        include: {
-          examQuestion: {
-            include: {
-              question: {
-                select: {
-                  id: true,
-                  content: true,
-                  questionType: true,
-                  defaultScore: true
+  const [data, total] = await Promise.all([
+    prisma.userExam.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        exam: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            durationMinutes: true
+          }
+        },
+        answers: {
+          include: {
+            examQuestion: {
+              include: {
+                question: {
+                  select: {
+                    id: true,
+                    content: true,
+                    questionType: true,
+                    defaultScore: true
+                  }
                 }
               }
             }
           }
+        },
+        proctoringEvents: {
+          select: {
+            eventType: true,
+            eventTime: true,
+            metadata: true
+          }
         }
       },
-      proctoringEvents: {
-        select: {
-          eventType: true,
-          eventTime: true,
-          metadata: true
-        }
-      }
-    },
-    orderBy: { createdAt: 'desc' }
-  });
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit
+    }),
+    prisma.userExam.count({ where })
+  ]);
+
+  return {
+    data,
+    total,
+    page,
+    limit
+  };
 };
 
 export default {

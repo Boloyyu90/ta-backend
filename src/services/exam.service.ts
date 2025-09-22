@@ -1,8 +1,6 @@
-import { PrismaClient, ExamStatus } from '@prisma/client';
 import httpStatus from 'http-status';
 import ApiError from '../utils/ApiError';
-
-const prisma = new PrismaClient();
+import prisma from '../client';
 
 const createExam = async (examData: {
   title: string;

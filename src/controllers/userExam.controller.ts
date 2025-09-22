@@ -21,8 +21,17 @@ const getUserResults = catchAsync(async (req: any, res: any) => {
 });
 
 const getAllResults = catchAsync(async (req: any, res: any) => {
-  const examId = req.query.examId ? parseInt(req.query.examId) : undefined;
-  const results = await userExamService.getAllExamResults(examId);
+  const examId = req.query.examId ? parseInt(req.query.examId as string, 10) : undefined;
+  const limitQuery = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+  const pageQuery = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+
+  const results = await userExamService.getAllExamResults(examId, {
+    limit:
+      typeof limitQuery === 'number' && !Number.isNaN(limitQuery) && limitQuery > 0 ? limitQuery : undefined,
+    page:
+      typeof pageQuery === 'number' && !Number.isNaN(pageQuery) && pageQuery > 0 ? pageQuery : undefined
+  });
+
   res.send(results);
 });
 

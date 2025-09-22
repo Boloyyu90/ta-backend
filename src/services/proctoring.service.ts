@@ -1,6 +1,5 @@
-import { PrismaClient, ProctoringEventType } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { ProctoringEventType } from '@prisma/client';
+import prisma from '../client';
 
 const recordProctoringEvent = async (
   userExamId: number,

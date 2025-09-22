@@ -1,8 +1,7 @@
-import { PrismaClient, QuestionType } from '@prisma/client';
+import { QuestionType } from '@prisma/client';
 import httpStatus from 'http-status';
 import ApiError from '../utils/ApiError';
-
-const prisma = new PrismaClient();
+import prisma from '../client';
 
 const createQuestion = async (questionData: {
   content: string;
