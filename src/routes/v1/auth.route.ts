@@ -3,33 +3,48 @@ import validate from '../../middlewares/validate';
 import authValidation from '../../validations/auth.validation';
 import { authController } from '../../controllers';
 import auth from '../../middlewares/auth';
+import type { MessageResponse } from '../../types/api';
 
 const router = express.Router();
 
+// rute lain tetap
 router.post('/register', validate(authValidation.register), authController.register);
 router.post('/login', validate(authValidation.login), authController.login);
 router.post('/logout', validate(authValidation.logout), authController.logout);
-router.post(
-  '/refresh-tokens',
-  validate(authValidation.refreshTokens),
-  authController.refreshTokens
-);
-router.post(
-  '/forgot-password',
-  validate(authValidation.forgotPassword),
-  authController.forgotPassword
-);
-router.post(
+router.post('/refresh-tokens', validate(authValidation.refreshTokens), authController.refreshTokens);
+router.post('/forgot-password', validate(authValidation.forgotPassword), authController.forgotPassword);
+
+// ---- Tambahan tipe untuk body & query yang dipakai di bawah
+type ResetPasswordBody = { password: string };
+type ResetPasswordQuery = { token: string };
+type VerifyEmailQuery = { token: string };
+
+// Reset password (punya query ?token=...)
+router.post<{}, void, ResetPasswordBody, ResetPasswordQuery>(
   '/reset-password',
   validate(authValidation.resetPassword),
   authController.resetPassword
 );
+
+// Verify email: POST dan GET keduanya pakai ?token=...
+router.post<{}, MessageResponse, {}, VerifyEmailQuery>(
+  '/verify-email',
+  validate(authValidation.verifyEmail),
+  authController.verifyEmail
+);
+
+router.get<{}, MessageResponse, {}, VerifyEmailQuery>(
+  '/verify-email',
+  validate(authValidation.verifyEmail),
+  authController.verifyEmail
+);
+
+// rute lain tetap
 router.post('/send-verification-email', auth(), authController.sendVerificationEmail);
-router.post('/verify-email', validate(authValidation.verifyEmail), authController.verifyEmail);
-router.get('/verify-email', validate(authValidation.verifyEmail), authController.verifyEmail);
 router.post('/test-email', validate(authValidation.testEmail), authController.testEmail);
 
 export default router;
+
 
 /**
  * @swagger

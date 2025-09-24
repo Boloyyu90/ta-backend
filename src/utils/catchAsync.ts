@@ -1,9 +1,35 @@
-import { Request, Response, NextFunction, RequestHandler } from 'express';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
 
-type AsyncRequestHandler = (req: Request, res: Response, next: NextFunction) => Promise<any>;
+type DefaultParams = Record<string, string>;
+type DefaultQuery = Record<string, unknown>;
 
-const catchAsync = (fn: any) => (req: any, res: any, next: any) => {
-  Promise.resolve(fn(req, res, next)).catch((err: any) => next(err));
-};
+ export type AsyncHandler<
+    P = DefaultParams,
+    ResBody = unknown,
+    ReqBody = unknown,
+    ReqQuery = DefaultQuery,
+    Locals extends Record<string, unknown> = Record<string, unknown>
+  > = (
+    req: Request<P, ResBody, ReqBody, ReqQuery, Locals>,
+    res: Response<ResBody, Locals>,
+    next: NextFunction
+  ) => Promise<unknown>;
 
-export default catchAsync;
+  const catchAsync = <
+    P = DefaultParams,
+    ResBody = unknown,
+    ReqBody = unknown,
+    ReqQuery = DefaultQuery,
+    Locals extends Record<string, unknown> = Record<string, unknown>
+  >(
+    handler: AsyncHandler<P, ResBody, ReqBody, ReqQuery, Locals>
+  ): RequestHandler => {
+    const wrapped: RequestHandler = (req, res, next) => {
+      void Promise.resolve(
+        handler(req as Request<P, ResBody, ReqBody, ReqQuery, Locals>, res, next)
+      ).catch(next);
+    };
+    return wrapped;
+  };
+
+  export default catchAsync;

@@ -38,10 +38,18 @@ const getProctoringStatistics = async (examId?: number) => {
     }
   });
 
-  return events.reduce((acc, event) => {
-    acc[event.eventType] = event._count.eventType;
-    return acc;
-  }, {} as Record<ProctoringEventType, number>);
+  const typedEvents = events as Array<{
+    eventType: ProctoringEventType;
+    _count: { eventType: number };
+  }>;
+
+  return typedEvents.reduce<Record<ProctoringEventType, number>>(
+    (acc, event) => {
+      acc[event.eventType] = event._count.eventType;
+      return acc;
+    },
+    {} as Record<ProctoringEventType, number>
+  );
 };
 
 export default {

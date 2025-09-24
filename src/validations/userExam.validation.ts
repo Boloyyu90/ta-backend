@@ -16,7 +16,9 @@ const finishExam = {
 
 const getUserResults = {
   query: Joi.object().keys({
-    examId: Joi.number().integer()
+    examId: Joi.number().integer(),
+    limit: Joi.number().integer().min(1),
+    page: Joi.number().integer().min(1)
   })
 };
 
