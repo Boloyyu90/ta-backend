@@ -25,7 +25,12 @@ const recordEvent = catchAsync(
     res: Response<unknown>
   ) => {
     const { userExamId, eventType, metadata } = req.body;
-    const event = await proctoringService.recordProctoringEvent(userExamId, eventType, metadata);
+    const event = await proctoringService.recordProctoringEvent(
+      req.user!.id,
+      userExamId,
+      eventType,
+      metadata
+    );
     res.status(httpStatus.CREATED).send(event);
   }
 );

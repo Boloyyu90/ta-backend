@@ -13,9 +13,10 @@ export const setupProctoringWebSocket = (io: Server) => {
 
     socket.on('proctoring-event', async (data) => {
       try {
-        const { userExamId, eventType, metadata } = data;
-        
+        const { actorUserId, userExamId, eventType, metadata } = data;
+
         await proctoringService.recordProctoringEvent(
+          actorUserId,
           userExamId,
           eventType,
           metadata

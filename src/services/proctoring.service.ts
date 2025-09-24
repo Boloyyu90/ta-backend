@@ -1,11 +1,27 @@
 import { ProctoringEventType } from '@prisma/client';
 import prisma from '../client';
+import httpStatus from 'http-status';
+import ApiError from '../utils/ApiError';
 
 const recordProctoringEvent = async (
+  actorUserId: number,
   userExamId: number,
   eventType: ProctoringEventType,
   metadata?: any
 ) => {
+  const userExam = await prisma.userExam.findUnique({
+    where: { id: userExamId },
+    select: { userId: true }
+  });
+
+  if (!userExam) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Exam session not found');
+  }
+
+  if (userExam.userId !== actorUserId) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Not allowed to record events for this exam session');
+  }
+
   return await prisma.proctoringEvent.create({
     data: {
       userExamId,

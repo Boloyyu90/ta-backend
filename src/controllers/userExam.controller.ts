@@ -27,7 +27,14 @@ const submitAnswer = catchAsync(
     res: Response<unknown>
   ) => {
     const { userExamId, examQuestionId, selectedOption } = req.body;
-    const answer = await userExamService.submitAnswer(userExamId, examQuestionId, selectedOption);
+    const { id: actorUserId } = req.user as { id: number };
+    const answer = await userExamService.submitAnswer(
+      actorUserId,
+      userExamId,
+      examQuestionId,
+      selectedOption
+    );
+    res.send(answer);
     res.send(answer);
   }
 );
@@ -37,7 +44,8 @@ const finishExam = catchAsync(
     req: Request<FinishExamParams, unknown, FinishExamRequestBody, FinishExamRequestQuery>,
     res: Response<unknown>
   ) => {
-    const userExam = await userExamService.finishExam(req.params.id);
+    const { id: actorUserId } = req.user as { id: number };
+    const userExam = await userExamService.finishExam(actorUserId, req.params.id);
     res.send(userExam);
   }
 );

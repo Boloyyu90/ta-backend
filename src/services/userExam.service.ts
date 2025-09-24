@@ -11,7 +11,12 @@ type AnswerWithQuestion = {
   };
 };
 
-const submitAnswer = async (userExamId: number, examQuestionId: number, selectedOption: string) => {
+const submitAnswer = async (
+  actorUserId: number,
+  userExamId: number,
+  examQuestionId: number,
+  selectedOption: string
+) => {
   const userExam = await prisma.userExam.findUnique({
     where: { id: userExamId },
     include: { exam: true }
@@ -19,6 +24,10 @@ const submitAnswer = async (userExamId: number, examQuestionId: number, selected
 
   if (!userExam) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Exam session not found');
+  }
+
+  if (userExam.userId !== actorUserId) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'You are not allowed to access this exam session');
   }
 
   if (userExam.status !== 'IN_PROGRESS') {
@@ -64,7 +73,7 @@ const submitAnswer = async (userExamId: number, examQuestionId: number, selected
   });
 };
 
-const finishExam = async (userExamId: number) => {
+const finishExam = async (actorUserId: number, userExamId: number) => {
   return await prisma.$transaction(async (tx: any) => {
     const userExam = await tx.userExam.findUnique({
       where: { id: userExamId },
@@ -81,6 +90,9 @@ const finishExam = async (userExamId: number) => {
 
     if (!userExam) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Exam session not found');
+    }
+    if (userExam.userId !== actorUserId) {
+      throw new ApiError(httpStatus.FORBIDDEN, 'You are not allowed to access this exam session');
     }
 
     // Kalkulasi total score(simplifikasi dengan total defaultScore tiap soal)
