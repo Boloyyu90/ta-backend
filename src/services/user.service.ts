@@ -4,6 +4,15 @@ import prisma from '../client';
 import ApiError from '../utils/ApiError';
 import { encryptPassword } from '../utils/encryption';
 
+const DEFAULT_USER_SELECT = [
+  'id',
+  'email',
+  'name',
+  'role',
+  'isEmailVerified',
+  'createdAt',
+  'updatedAt'
+] as const;
 /**
  * Create user
  * @param {string} email
@@ -76,25 +85,22 @@ const queryUsers = async <Key extends keyof User>(
  * Get user berdasarkan id
  * @param {number} id
  * @param {Array<Key>} keys
- * @returns {Promise<Pick<User, Key> | null>}
+ * @returns {Promise<Pick<User, Key>>}
  */
 const getUserById = async <Key extends keyof User>(
   id: number,
-  keys: Key[] = [
-    'id',
-    'email',
-    'name',
-    'role',
-    'isEmailVerified',
-    'createdAt',
-    'updatedAt'
-  ] as Key[]
-): Promise<Pick<User, Key> | null> => {
-  return prisma.user.findUnique({
+  keys: Key[] = DEFAULT_USER_SELECT as unknown as Key[]
+): Promise<Pick<User, Key>> => {
+  const user = await prisma.user.findUnique({
     where: { id },
     select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {})
-  }) as Promise<Pick<User, Key> | null>;
+  });
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  return user as Pick<User, Key>;
 };
+
 
 /**
  * Get user berdasarkan email
@@ -104,15 +110,7 @@ const getUserById = async <Key extends keyof User>(
  */
 const getUserByEmail = async <Key extends keyof User>(
   email: string,
-  keys: Key[] = [
-    'id',
-    'email',
-    'name',
-    'role',
-    'isEmailVerified',
-    'createdAt',
-    'updatedAt'
-  ] as Key[]
+  keys: Key[] = DEFAULT_USER_SELECT as unknown as Key[]
 ): Promise<Pick<User, Key> | null> => {
   return prisma.user.findUnique({
     where: { email },
@@ -120,21 +118,34 @@ const getUserByEmail = async <Key extends keyof User>(
   }) as Promise<Pick<User, Key> | null>;
 };
 
+const getUserByEmailOrThrow = async <Key extends keyof User>(
+  email: string,
+  keys: Key[] = DEFAULT_USER_SELECT as unknown as Key[],
+  errorStatus: number = httpStatus.NOT_FOUND,
+  errorMessage = 'User not found'
+): Promise<Pick<User, Key>> => {
+  const user = await getUserByEmail<Key>(email, keys);
+
+  if (!user) {
+    throw new ApiError(errorStatus, errorMessage);
+  }
+
+  return user;
+};
+
+
 /**
  * Update user berdasarkan id
  * @param {number} userId
  * @param {Object} updateBody
- * @returns {Promise<User>}
+ * @returns {Promise<Pick<User, Key>>}
  */
 const updateUserById = async <Key extends keyof User>(
   userId: number,
   updateBody: Prisma.UserUpdateInput,
   keys: Key[] = ['id', 'email', 'name', 'role'] as Key[]
-): Promise<Pick<User, Key> | null> => {
+): Promise<Pick<User, Key>> => {
   const user = await getUserById(userId, ['id', 'email', 'name']);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
   if (updateBody.email && (await getUserByEmail(updateBody.email as string))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
@@ -146,7 +157,7 @@ const updateUserById = async <Key extends keyof User>(
     data: updateBody,
     select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {})
   });
-  return updatedUser as Pick<User, Key> | null;
+  return updatedUser as Pick<User, Key>;
 };
 
 /**
@@ -156,9 +167,6 @@ const updateUserById = async <Key extends keyof User>(
  */
 const deleteUserById = async (userId: number): Promise<User> => {
   const user = await getUserById(userId);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
   await prisma.user.delete({ where: { id: user.id } });
   return user as User;
 };
@@ -168,6 +176,7 @@ export default {
   queryUsers,
   getUserById,
   getUserByEmail,
+  getUserByEmailOrThrow,
   updateUserById,
   deleteUserById
 };

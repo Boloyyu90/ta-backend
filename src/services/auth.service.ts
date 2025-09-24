@@ -18,17 +18,23 @@ const loginUserWithEmailAndPassword = async (
   email: string,
   password: string
 ): Promise<Omit<User, 'password'>> => {
-  const user = await userService.getUserByEmail(email, [
-    'id',
-    'email',
-    'name',
-    'password',
-    'role',
-    'isEmailVerified',
-    'createdAt',
-    'updatedAt'
-  ]);
-  if (!user || !(await isPasswordMatch(password, user.password))) {
+  const user = await userService.getUserByEmailOrThrow(
+    email,
+    [
+      'id',
+      'email',
+      'name',
+      'password',
+      'role',
+      'isEmailVerified',
+      'createdAt',
+      'updatedAt'
+    ],
+    httpStatus.UNAUTHORIZED,
+    'Incorrect email or password'
+  );
+
+  if (!(await isPasswordMatch(password, user.password))) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
   }
   if (!user.isEmailVerified) {
@@ -62,16 +68,12 @@ const refreshAuth = async (refreshToken: string): Promise<AuthTokensResponse> =>
   try {
     const refreshTokenData = await tokenService.verifyToken(refreshToken, TokenType.REFRESH);
     const user = await userService.getUserById(refreshTokenData.userId);
-    if (!user) {
-      throw new Error();
-    }
     await prisma.token.delete({ where: { id: refreshTokenData.id } });
     return tokenService.generateAuthTokens(user);
   } catch (error) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
   }
 };
-
 /**
  * Reset password
  * @param {string} resetPasswordToken
@@ -85,9 +87,6 @@ const resetPassword = async (resetPasswordToken: string, newPassword: string): P
       TokenType.RESET_PASSWORD
     );
     const user = await userService.getUserById(resetPasswordTokenData.userId);
-    if (!user) {
-      throw new Error();
-    }
     await userService.updateUserById(user.id, { password: await encryptPassword(newPassword) });
     await prisma.token.deleteMany({ where: { userId: user.id, type: TokenType.RESET_PASSWORD } });
   } catch (error) {
@@ -101,25 +100,17 @@ const resetPassword = async (resetPasswordToken: string, newPassword: string): P
  * @returns {Promise}
  */
 const verifyEmail = async (verifyEmailToken: string): Promise<void> => {
-  const verifyEmailTokenData = await tokenService.verifyToken(
-    verifyEmailToken,
-    TokenType.VERIFY_EMAIL
-  );
-
-  const user = await userService.getUserById(verifyEmailTokenData.userId);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  try {
+    const verifyEmailTokenData = await tokenService.verifyToken(
+      verifyEmailToken,
+      TokenType.VERIFY_EMAIL
+    );
+    const user = await userService.getUserById(verifyEmailTokenData.userId);
+    await prisma.token.deleteMany({ where: { userId: user.id, type: TokenType.VERIFY_EMAIL } });
+    await userService.updateUserById(user.id, { isEmailVerified: true });
+  } catch (error) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Email verification failed');
   }
-
-  if (user.isEmailVerified) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email is already verified');
-  }
-
-  await userService.updateUserById(user.id, { isEmailVerified: true });
-
-  await prisma.token.deleteMany({
-    where: { userId: user.id, type: TokenType.VERIFY_EMAIL }
-  });
 };
 
 export default {

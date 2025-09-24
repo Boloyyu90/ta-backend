@@ -109,10 +109,12 @@ const generateAuthTokens = async (user: { id: number }): Promise<AuthTokensRespo
  * @returns {Promise<string>}
  */
 const generateResetPasswordToken = async (email: string): Promise<string> => {
-  const user = await userService.getUserByEmail(email);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'No users found with this email');
-  }
+  const user = await userService.getUserByEmailOrThrow(
+    email,
+    ['id'],
+    httpStatus.NOT_FOUND,
+    'No users found with this email'
+  );
   const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
   const resetPasswordToken = generateToken(user.id, expires, TokenType.RESET_PASSWORD);
   await saveToken(resetPasswordToken, user.id, expires, TokenType.RESET_PASSWORD);
