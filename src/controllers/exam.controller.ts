@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import httpStatus from 'http-status';
 import { Request, Response } from 'express';
 import catchAsync from '../utils/catchAsync';
@@ -65,7 +66,25 @@ const updateExam = catchAsync(
     req: Request<UpdateExamRequestParams, unknown, UpdateExamRequestBody, UpdateExamRequestQuery>,
     res: Response<unknown>
   ) => {
-    const exam = await examService.updateExam(req.params.id, req.body);
+    const updateData: Prisma.ExamUpdateInput = {};
+
+    if (req.body.title !== undefined) {
+      updateData.title = req.body.title;
+    }
+    if (req.body.description !== undefined) {
+      updateData.description = req.body.description;
+    }
+    if (req.body.startTime !== undefined) {
+      updateData.startTime = req.body.startTime;
+    }
+    if (req.body.endTime !== undefined) {
+      updateData.endTime = req.body.endTime;
+    }
+    if (req.body.durationMinutes !== undefined) {
+      updateData.durationMinutes = req.body.durationMinutes;
+    }
+
+    const exam = await examService.updateExam(req.params.id, updateData);
     res.send(exam);
   }
 );

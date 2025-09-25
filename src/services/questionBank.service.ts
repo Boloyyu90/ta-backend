@@ -1,4 +1,4 @@
-import { QuestionType } from '@prisma/client';
+import { Prisma, QuestionType } from '@prisma/client';
 import httpStatus from 'http-status';
 import ApiError from '../utils/ApiError';
 import prisma from '../client';
@@ -48,8 +48,8 @@ const getQuestionById = async (id: number) => {
   return question;
 };
 
-const updateQuestion = async (id: number, updateData: any) => {
-  const question = await getQuestionById(id);
+const updateQuestion = async (id: number, updateData: Prisma.QuestionBankUpdateInput) => {
+  await getQuestionById(id);
   return await prisma.questionBank.update({
     where: { id },
     data: updateData

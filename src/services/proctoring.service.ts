@@ -1,4 +1,4 @@
-import { ProctoringEventType } from '@prisma/client';
+import { Prisma, ProctoringEventType } from '@prisma/client';
 import prisma from '../client';
 import httpStatus from 'http-status';
 import ApiError from '../utils/ApiError';
@@ -7,7 +7,7 @@ const recordProctoringEvent = async (
   actorUserId: number,
   userExamId: number,
   eventType: ProctoringEventType,
-  metadata?: any
+  metadata?: Prisma.JsonValue
 ) => {
   const userExam = await prisma.userExam.findUnique({
     where: { id: userExamId },

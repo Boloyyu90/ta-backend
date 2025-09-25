@@ -22,7 +22,6 @@ export const setupProctoringWebSocket = (io: Server) => {
           metadata
         );
 
-        // Broadcast to admin/proctor
         socket.broadcast.emit('proctoring-alert', {
           userExamId,
           eventType,

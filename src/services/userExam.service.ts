@@ -74,7 +74,7 @@ const submitAnswer = async (
 };
 
 const finishExam = async (actorUserId: number, userExamId: number) => {
-  return await prisma.$transaction(async (tx: any) => {
+  return await prisma.$transaction(async (tx) => {
     const userExam = await tx.userExam.findUnique({
       where: { id: userExamId },
       include: {

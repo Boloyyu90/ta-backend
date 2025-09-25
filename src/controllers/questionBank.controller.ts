@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import httpStatus from 'http-status';
 import { Request, Response } from 'express';
 import catchAsync from '../utils/catchAsync';
@@ -61,7 +62,25 @@ const updateQuestion = catchAsync(
     req: Request<QuestionIdParams, unknown, UpdateQuestionRequestBody, unknown>,
     res: Response<unknown>
   ) => {
-    const question = await questionBankService.updateQuestion(req.params.id, req.body);
+    const updateData: Prisma.QuestionBankUpdateInput = {};
+
+    if (req.body.content !== undefined) {
+      updateData.content = req.body.content;
+    }
+    if (req.body.options !== undefined) {
+      updateData.options = req.body.options;
+    }
+    if (req.body.correctAnswer !== undefined) {
+      updateData.correctAnswer = req.body.correctAnswer;
+    }
+    if (req.body.defaultScore !== undefined) {
+      updateData.defaultScore = req.body.defaultScore;
+    }
+    if (req.body.questionType !== undefined) {
+      updateData.questionType = req.body.questionType;
+    }
+
+    const question = await questionBankService.updateQuestion(req.params.id, updateData);
     res.send(question);
   }
 );

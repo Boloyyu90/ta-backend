@@ -4,7 +4,7 @@ import httpStatus from 'http-status';
 import config from '../config/config';
 import userService from './user.service';
 import ApiError from '../utils/ApiError';
-import { Token, TokenType } from '@prisma/client';
+import { Token, TokenType, User } from '@prisma/client';
 import prisma from '../client';
 import { AuthTokensResponse } from '../types/response';
 import { sha256 } from '../utils/encryption';
@@ -67,10 +67,17 @@ const saveToken = async (
  * @returns {Promise<Token>}
  */
 const verifyToken = async (token: string, type: TokenType): Promise<Token> => {
-  const payload = jwt.verify(token, config.jwt.secret) as any;
+  const payload = jwt.verify(token, config.jwt.secret);
+
+  if (!payload || typeof payload !== 'object' || !('sub' in payload)) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid token payload');
+  }
   const userId = Number(payload.sub);
+  if (Number.isNaN(userId)) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid token subject');
+  }
   const tokenData = await prisma.token.findFirst({
-  where: { tokenHash: sha256(token), type, blacklisted: false }
+    where: { tokenHash: sha256(token), type, blacklisted: false }
   });
   if (!tokenData) {
     throw new Error('Token not found');
@@ -126,7 +133,7 @@ const generateResetPasswordToken = async (email: string): Promise<string> => {
  * @param {User} user
  * @returns {Promise<string>}
  */
-const generateVerifyEmailToken = async (user: any): Promise<string> => {
+const generateVerifyEmailToken = async (user: Pick<User, 'id'>): Promise<string> => {
   const expires = moment().add(config.jwt.verifyEmailExpirationMinutes, 'minutes');
   const verifyEmailToken = generateToken(user.id, expires, TokenType.VERIFY_EMAIL);
   await saveToken(verifyEmailToken, user.id, expires, TokenType.VERIFY_EMAIL);

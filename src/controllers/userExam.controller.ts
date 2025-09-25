@@ -35,7 +35,6 @@ const submitAnswer = catchAsync(
       selectedOption
     );
     res.send(answer);
-    res.send(answer);
   }
 );
 

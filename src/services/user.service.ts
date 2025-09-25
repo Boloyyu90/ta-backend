@@ -1,4 +1,4 @@
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User, UserRole } from '@prisma/client';
 import httpStatus from 'http-status';
 import prisma from '../client';
 import ApiError from '../utils/ApiError';
@@ -25,7 +25,7 @@ const createUser = async (
   email: string,
   password: string,
   name: string = '',
-  role: string = 'PARTICIPANT'
+  role: UserRole = UserRole.PARTICIPANT
 ): Promise<User> => {
   if (await getUserByEmail(email)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
@@ -35,7 +35,7 @@ const createUser = async (
       email,
       password: await encryptPassword(password),
       name,
-      role: role as any
+      role
     }
   });
 };
@@ -50,7 +50,7 @@ const createUser = async (
  * @returns {Promise<QueryResult>}
  */
 const queryUsers = async <Key extends keyof User>(
-  filter: any,
+  filter: Prisma.UserWhereInput,
   options: {
     limit?: number;
     page?: number;

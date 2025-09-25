@@ -1,3 +1,5 @@
+
+import type { Prisma } from '@prisma/client';
 import httpStatus from 'http-status';
 import ApiError from '../utils/ApiError';
 import prisma from '../client';
@@ -117,8 +119,8 @@ const getExamById = async (id: number, includeQuestions = false) => {
   return exam;
 };
 
-const updateExam = async (id: number, updateData: any) => {
-  const exam = await getExamById(id);
+const updateExam = async (id: number, updateData: Prisma.ExamUpdateInput) => {
+  await getExamById(id);
   return await prisma.exam.update({
     where: { id },
     data: updateData

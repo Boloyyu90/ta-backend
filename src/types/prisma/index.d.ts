@@ -26,6 +26,12 @@ declare module '.prisma/client' {
     MULTIPLE_FACES: ProctoringEventType;
   };
 
+  export type JsonPrimitive = string | number | boolean | null;
+  export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
+  export interface JsonObject {
+    [Key: string]: JsonValue;
+  }
+
   export interface User {
     id: number;
     name: string;
@@ -48,10 +54,61 @@ declare module '.prisma/client' {
     tokenHash: string;
   }
 
+  export interface Exam {
+    id: number;
+    title: string;
+    description: string | null;
+    startTime: Date | null;
+    endTime: Date | null;
+    durationMinutes: number | null;
+    createdBy: number;
+    createdAt: Date;
+  }
+
+  export interface QuestionBank {
+    id: number;
+    content: string;
+    options: JsonValue;
+    correctAnswer: string;
+    defaultScore: number;
+    questionType: QuestionType;
+    createdAt: Date;
+  }
+
+
   export namespace Prisma {
     export type PrismaClientOptions = Record<string, unknown>;
     export type PrismaPromise<T> = Promise<T>;
+    export type JsonPrimitive = import('.prisma/client').JsonPrimitive;
+    export type JsonValue = import('.prisma/client').JsonValue;
+    export interface JsonObject extends import('.prisma/client').JsonObject {}
+
+    export type StringFilter = {
+      contains?: string;
+      equals?: string;
+      mode?: 'default' | 'insensitive';
+    };
+
+    export type UserWhereInput = {
+      id?: number;
+      email?: string;
+      name?: StringFilter;
+      role?: UserRole;
+      isEmailVerified?: boolean;
+      AND?: UserWhereInput | UserWhereInput[];
+      OR?: UserWhereInput[];
+      NOT?: UserWhereInput | UserWhereInput[];
+    };
+
     export type UserUpdateInput = Partial<Omit<User, 'id'>>;
+
+    export type ExamUpdateInput = Partial<
+      Pick<Exam, 'title' | 'description' | 'startTime' | 'endTime' | 'durationMinutes'>
+    >;
+
+    export type QuestionBankUpdateInput = Partial<
+      Pick<QuestionBank, 'content' | 'options' | 'correctAnswer' | 'defaultScore' | 'questionType'>
+    >;
 
     export class PrismaClientKnownRequestError extends Error {
       code: string;
