@@ -10,7 +10,7 @@ const submitAnswer = {
 
 const finishExam = {
   params: Joi.object().keys({
-    id: Joi.number().integer().required()
+    id: Joi.string().pattern(/^\d+$/).required()
   })
 };
 

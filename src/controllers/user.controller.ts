@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import pick from '../utils/pick';
 import ApiError from '../utils/ApiError';
 import catchAsync from '../utils/catchAsync';
+import parseId from '../utils/parseId';
 import { userService } from '../services';
 import {
   CreateUserRequestBody,
@@ -54,17 +55,8 @@ const getUsers = catchAsync(
 );
 
 const getUser = catchAsync(
-  async (
-    req: Request<GetUserRequestParams, unknown, unknown, unknown>,
-    res: Response<unknown>
-  ) => {
-    // Parse string to number
-    const userId = parseInt(req.params.userId, 10);
-
-    if (isNaN(userId)) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid user ID');
-    }
-
+  async (req: Request<GetUserRequestParams, unknown, unknown, unknown>, res: Response<unknown>) => {
+    const userId = parseId(req.params.userId, 'user ID');
     const user = await userService.getUserById(userId);
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
@@ -78,24 +70,12 @@ const updateUser = catchAsync(
     req: Request<UpdateUserRequestParams, unknown, UpdateUserRequestBody, unknown>,
     res: Response<unknown>
   ) => {
-    // Parse string to number
-    const userId = parseInt(req.params.userId, 10);
-
-    if (isNaN(userId)) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid user ID');
-    }
+    const userId = parseId(req.params.userId, 'user ID');
 
     const updateData: Prisma.UserUpdateInput = {};
-
-    if (req.body.email !== undefined) {
-      updateData.email = req.body.email;
-    }
-    if (req.body.password !== undefined) {
-      updateData.password = req.body.password;
-    }
-    if (req.body.name !== undefined) {
-      updateData.name = req.body.name;
-    }
+    if (req.body.email !== undefined) updateData.email = req.body.email;
+    if (req.body.password !== undefined) updateData.password = req.body.password;
+    if (req.body.name !== undefined) updateData.name = req.body.name;
 
     const user = await userService.updateUserById(userId, updateData);
     res.send(user);
@@ -107,13 +87,7 @@ const deleteUser = catchAsync(
     req: Request<DeleteUserRequestParams, unknown, DeleteUserRequestBody, DeleteUserRequestQuery>,
     res: Response<unknown>
   ) => {
-    // Parse string to number
-    const userId = parseInt(req.params.userId, 10);
-
-    if (isNaN(userId)) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid user ID');
-    }
-
+    const userId = parseId(req.params.userId, 'user ID');
     await userService.deleteUserById(userId);
     res.status(httpStatus.NO_CONTENT).send();
   }

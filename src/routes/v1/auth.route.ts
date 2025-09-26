@@ -3,7 +3,6 @@ import validate from '../../middlewares/validate';
 import authValidation from '../../validations/auth.validation';
 import { authController } from '../../controllers';
 import auth from '../../middlewares/auth';
-import type { MessageResponse } from '../../types/api';
 
 const router = express.Router();
 
@@ -26,14 +25,13 @@ router.post<{}, void, ResetPasswordBody, ResetPasswordQuery>(
   authController.resetPassword
 );
 
-// Verify email: POST dan GET keduanya pakai ?token=...
-router.post<{}, MessageResponse, {}, VerifyEmailQuery>(
+router.post(
   '/verify-email',
   validate(authValidation.verifyEmail),
   authController.verifyEmail
 );
 
-router.get<{}, MessageResponse, {}, VerifyEmailQuery>(
+router.get(
   '/verify-email',
   validate(authValidation.verifyEmail),
   authController.verifyEmail

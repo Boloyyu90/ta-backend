@@ -3,7 +3,6 @@ import { EmptyObject } from './common';
 export interface ExamQuestionInput {
   questionId: number;
   orderNumber?: number;
-  scoreOverride?: number;
 }
 
 export interface CreateExamRequestBody {
@@ -28,8 +27,9 @@ export interface GetExamsQuery {
 export type GetExamsParams = EmptyObject;
 export type GetExamsRequestBody = EmptyObject;
 
+// ✅ FIXED: string bukan number
 export interface GetExamParams {
-  id: number;
+  id: string;
 }
 
 export interface GetExamQuery {

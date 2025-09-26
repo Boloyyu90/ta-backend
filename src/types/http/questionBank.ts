@@ -23,8 +23,9 @@ export interface GetQuestionsQuery {
 export type GetQuestionsParams = EmptyObject;
 export type GetQuestionsRequestBody = EmptyObject;
 
+// ✅ FIXED: string bukan number
 export interface QuestionIdParams {
-  id: number;
+  id: string;
 }
 
 export interface UpdateQuestionRequestBody {

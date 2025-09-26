@@ -11,7 +11,7 @@ export type SubmitAnswerRequestParams = EmptyObject;
 export type SubmitAnswerRequestQuery = EmptyObject;
 
 export interface FinishExamParams {
-  id: number;
+  id: string;
 }
 
 export type FinishExamRequestBody = EmptyObject;

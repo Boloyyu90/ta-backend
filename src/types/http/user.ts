@@ -21,8 +21,9 @@ export interface GetUsersQuery {
 export type GetUsersParams = EmptyObject;
 export type GetUsersRequestBody = EmptyObject;
 
+// ✅ FIXED: string bukan number
 export interface UserIdParams {
-  userId: number;
+  userId: string;
 }
 
 export interface UpdateUserRequestBody {

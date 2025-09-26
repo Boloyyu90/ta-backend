@@ -1,7 +1,8 @@
-import { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client';
 import httpStatus from 'http-status';
 import { Request, Response } from 'express';
 import catchAsync from '../utils/catchAsync';
+import parseId from '../utils/parseId';
 import { examService } from '../services';
 import {
   CreateExamRequestBody,
@@ -50,21 +51,14 @@ const getExams = catchAsync(
   }
 );
 
-/**
- * Get exam by ID with role-based filtering
- * SECURITY FIX: Pass user role to service for filtering sensitive data
- */
 const getExam = catchAsync(
-  async (
-    req: Request<GetExamParams, unknown, unknown, GetExamQuery>,
-    res: Response<unknown>
-  ) => {
+  async (req: Request<GetExamParams, unknown, unknown, GetExamQuery>, res: Response<unknown>) => {
+    const examId = parseId(req.params.id, 'exam ID');
     const includeQuestions = req.query.include === 'questions';
     const userRole = (req.user as { role: string })?.role;
 
-    // Pass user role to service for proper filtering
     const exam = await examService.getExamById(
-      req.params.id,
+      examId,
       includeQuestions,
       userRole as 'ADMIN' | 'PARTICIPANT'
     );
@@ -78,25 +72,16 @@ const updateExam = catchAsync(
     req: Request<UpdateExamRequestParams, unknown, UpdateExamRequestBody, UpdateExamRequestQuery>,
     res: Response<unknown>
   ) => {
+    const examId = parseId(req.params.id, 'exam ID');
+
     const updateData: Prisma.ExamUpdateInput = {};
+    if (req.body.title !== undefined) updateData.title = req.body.title;
+    if (req.body.description !== undefined) updateData.description = req.body.description;
+    if (req.body.startTime !== undefined) updateData.startTime = req.body.startTime;
+    if (req.body.endTime !== undefined) updateData.endTime = req.body.endTime;
+    if (req.body.durationMinutes !== undefined) updateData.durationMinutes = req.body.durationMinutes;
 
-    if (req.body.title !== undefined) {
-      updateData.title = req.body.title;
-    }
-    if (req.body.description !== undefined) {
-      updateData.description = req.body.description;
-    }
-    if (req.body.startTime !== undefined) {
-      updateData.startTime = req.body.startTime;
-    }
-    if (req.body.endTime !== undefined) {
-      updateData.endTime = req.body.endTime;
-    }
-    if (req.body.durationMinutes !== undefined) {
-      updateData.durationMinutes = req.body.durationMinutes;
-    }
-
-    const exam = await examService.updateExam(req.params.id, updateData);
+    const exam = await examService.updateExam(examId, updateData);
     res.send(exam);
   }
 );
@@ -106,8 +91,9 @@ const startExam = catchAsync(
     req: Request<StartExamParams, unknown, StartExamRequestBody, StartExamRequestQuery>,
     res: Response<unknown>
   ) => {
+    const examId = parseId(req.params.id, 'exam ID');
     const { id: userId } = req.user as { id: number };
-    const userExam = await examService.startExam(req.params.id, userId);
+    const userExam = await examService.startExam(examId, userId);
     res.send(userExam);
   }
 );

@@ -10,7 +10,7 @@ const recordEvent = {
 
 const getEvents = {
   params: Joi.object().keys({
-    userExamId: Joi.number().integer().required()
+    userExamId: Joi.string().pattern(/^\d+$/).required()
   })
 };
 

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import catchAsync from '../utils/catchAsync';
+import parseId from '../utils/parseId';
 import { userExamService } from '../services';
 import {
   FinishExamParams,
@@ -18,12 +19,7 @@ import {
 
 const submitAnswer = catchAsync(
   async (
-    req: Request<
-      SubmitAnswerRequestParams,
-      unknown,
-      SubmitAnswerRequestBody,
-      SubmitAnswerRequestQuery
-    >,
+    req: Request<SubmitAnswerRequestParams, unknown, SubmitAnswerRequestBody, SubmitAnswerRequestQuery>,
     res: Response<unknown>
   ) => {
     const { userExamId, examQuestionId, selectedOption } = req.body;
@@ -43,8 +39,9 @@ const finishExam = catchAsync(
     req: Request<FinishExamParams, unknown, FinishExamRequestBody, FinishExamRequestQuery>,
     res: Response<unknown>
   ) => {
+    const userExamId = parseId(req.params.id, 'user exam ID');
     const { id: actorUserId } = req.user as { id: number };
-    const userExam = await userExamService.finishExam(actorUserId, req.params.id);
+    const userExam = await userExamService.finishExam(actorUserId, userExamId);
     res.send(userExam);
   }
 );

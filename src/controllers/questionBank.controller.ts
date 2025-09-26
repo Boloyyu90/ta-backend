@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import httpStatus from 'http-status';
 import { Request, Response } from 'express';
 import catchAsync from '../utils/catchAsync';
+import parseId from '../utils/parseId';
 import { questionBankService } from '../services';
 import {
   CreateQuestionRequestBody,
@@ -19,12 +20,7 @@ import {
 
 const createQuestion = catchAsync(
   async (
-    req: Request<
-      CreateQuestionRequestParams,
-      unknown,
-      CreateQuestionRequestBody,
-      CreateQuestionRequestQuery
-    >,
+    req: Request<CreateQuestionRequestParams, unknown, CreateQuestionRequestBody, CreateQuestionRequestQuery>,
     res: Response<unknown>
   ) => {
     const question = await questionBankService.createQuestion(req.body);
@@ -48,11 +44,9 @@ const getQuestions = catchAsync(
 );
 
 const getQuestion = catchAsync(
-  async (
-    req: Request<QuestionIdParams, unknown, unknown, unknown>,
-    res: Response<unknown>
-  ) => {
-    const question = await questionBankService.getQuestionById(req.params.id);
+  async (req: Request<QuestionIdParams, unknown, unknown, unknown>, res: Response<unknown>) => {
+    const questionId = parseId(req.params.id, 'question ID');
+    const question = await questionBankService.getQuestionById(questionId);
     res.send(question);
   }
 );
@@ -62,40 +56,27 @@ const updateQuestion = catchAsync(
     req: Request<QuestionIdParams, unknown, UpdateQuestionRequestBody, unknown>,
     res: Response<unknown>
   ) => {
+    const questionId = parseId(req.params.id, 'question ID');
+
     const updateData: Prisma.QuestionBankUpdateInput = {};
+    if (req.body.content !== undefined) updateData.content = req.body.content;
+    if (req.body.options !== undefined) updateData.options = req.body.options;
+    if (req.body.correctAnswer !== undefined) updateData.correctAnswer = req.body.correctAnswer;
+    if (req.body.defaultScore !== undefined) updateData.defaultScore = req.body.defaultScore;
+    if (req.body.questionType !== undefined) updateData.questionType = req.body.questionType;
 
-    if (req.body.content !== undefined) {
-      updateData.content = req.body.content;
-    }
-    if (req.body.options !== undefined) {
-      updateData.options = req.body.options;
-    }
-    if (req.body.correctAnswer !== undefined) {
-      updateData.correctAnswer = req.body.correctAnswer;
-    }
-    if (req.body.defaultScore !== undefined) {
-      updateData.defaultScore = req.body.defaultScore;
-    }
-    if (req.body.questionType !== undefined) {
-      updateData.questionType = req.body.questionType;
-    }
-
-    const question = await questionBankService.updateQuestion(req.params.id, updateData);
+    const question = await questionBankService.updateQuestion(questionId, updateData);
     res.send(question);
   }
 );
 
 const deleteQuestion = catchAsync(
   async (
-    req: Request<
-      DeleteQuestionRequestParams,
-      unknown,
-      DeleteQuestionRequestBody,
-      DeleteQuestionRequestQuery
-    >,
+    req: Request<DeleteQuestionRequestParams, unknown, DeleteQuestionRequestBody, DeleteQuestionRequestQuery>,
     res: Response<unknown>
   ) => {
-    await questionBankService.deleteQuestion(req.params.id);
+    const questionId = parseId(req.params.id, 'question ID');
+    await questionBankService.deleteQuestion(questionId);
     res.status(httpStatus.NO_CONTENT).send();
   }
 );

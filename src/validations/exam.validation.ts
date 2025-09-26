@@ -28,7 +28,7 @@ const getExams = {
 
 const getExam = {
   params: Joi.object().keys({
-    id: Joi.number().integer().required()
+    id: Joi.string().pattern(/^\d+$/).required()
   }),
   query: Joi.object().keys({
     include: Joi.string().valid('questions')
@@ -37,13 +37,13 @@ const getExam = {
 
 const startExam = {
   params: Joi.object().keys({
-    id: Joi.number().integer().required()
+    id: Joi.string().pattern(/^\d+$/).required()
   })
 };
 
 const updateExam = {
   params: Joi.object().keys({
-    id: Joi.number().integer().required()
+    id: Joi.string().pattern(/^\d+$/).required()
   }),
   body: Joi.object()
     .keys({
