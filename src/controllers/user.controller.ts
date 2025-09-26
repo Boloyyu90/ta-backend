@@ -58,7 +58,14 @@ const getUser = catchAsync(
     req: Request<GetUserRequestParams, unknown, unknown, unknown>,
     res: Response<unknown>
   ) => {
-    const user = await userService.getUserById(req.params.userId);
+    // Parse string to number
+    const userId = parseInt(req.params.userId, 10);
+
+    if (isNaN(userId)) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid user ID');
+    }
+
+    const user = await userService.getUserById(userId);
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
     }
@@ -71,6 +78,13 @@ const updateUser = catchAsync(
     req: Request<UpdateUserRequestParams, unknown, UpdateUserRequestBody, unknown>,
     res: Response<unknown>
   ) => {
+    // Parse string to number
+    const userId = parseInt(req.params.userId, 10);
+
+    if (isNaN(userId)) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid user ID');
+    }
+
     const updateData: Prisma.UserUpdateInput = {};
 
     if (req.body.email !== undefined) {
@@ -83,7 +97,7 @@ const updateUser = catchAsync(
       updateData.name = req.body.name;
     }
 
-    const user = await userService.updateUserById(req.params.userId, updateData);
+    const user = await userService.updateUserById(userId, updateData);
     res.send(user);
   }
 );
@@ -93,7 +107,14 @@ const deleteUser = catchAsync(
     req: Request<DeleteUserRequestParams, unknown, DeleteUserRequestBody, DeleteUserRequestQuery>,
     res: Response<unknown>
   ) => {
-    await userService.deleteUserById(req.params.userId);
+    // Parse string to number
+    const userId = parseInt(req.params.userId, 10);
+
+    if (isNaN(userId)) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid user ID');
+    }
+
+    await userService.deleteUserById(userId);
     res.status(httpStatus.NO_CONTENT).send();
   }
 );

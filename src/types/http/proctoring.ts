@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { EmptyObject } from './common';
 
 export type ProctoringEventTypeString = 'FACE_NOT_DETECTED' | 'MULTIPLE_FACES';
@@ -5,14 +6,14 @@ export type ProctoringEventTypeString = 'FACE_NOT_DETECTED' | 'MULTIPLE_FACES';
 export interface RecordEventRequestBody {
   userExamId: number;
   eventType: ProctoringEventTypeString;
-  metadata?: Record<string, unknown>;
+  metadata?: Prisma.JsonValue;  // ✅ Changed from Record<string, unknown>
 }
 
 export type RecordEventRequestParams = EmptyObject;
 export type RecordEventRequestQuery = EmptyObject;
 
 export interface GetEventsParams {
-  userExamId: number;
+  userExamId: string;
 }
 
 export type GetEventsRequestBody = EmptyObject;

@@ -1,5 +1,4 @@
-
-import type { Prisma } from '@prisma/client';
+import type { Prisma, UserRole } from '@prisma/client';
 import httpStatus from 'http-status';
 import ApiError from '../utils/ApiError';
 import prisma from '../client';
@@ -92,7 +91,41 @@ const getExamsbyAdmin = async (filter: { createdBy?: number; limit?: number; pag
   return { exams, total };
 };
 
-const getExamById = async (id: number, includeQuestions = false) => {
+/**
+ * Get exam by ID with role-based field filtering
+ * @param {number} id - Exam ID
+ * @param {boolean} includeQuestions - Whether to include questions
+ * @param {UserRole} userRole - Role of requesting user (for filtering sensitive data)
+ * @returns {Promise<Exam>}
+ */
+const getExamById = async (
+  id: number,
+  includeQuestions = false,
+  userRole?: UserRole
+) => {
+  // Define question fields based on user role
+  const questionSelect = userRole === 'ADMIN'
+    ? {
+      // ADMIN sees everything
+      id: true,
+      content: true,
+      options: true,
+      correctAnswer: true,
+      defaultScore: true,
+      questionType: true,
+      createdAt: true
+    }
+    : {
+      // PARTICIPANT only sees necessary fields
+      id: true,
+      content: true,
+      options: true,
+      questionType: true,
+      defaultScore: true
+      // correctAnswer: EXCLUDED
+      // createdAt: EXCLUDED (not needed for taking exam)
+    };
+
   const exam = await prisma.exam.findUnique({
     where: { id },
     include: {
@@ -101,11 +134,13 @@ const getExamById = async (id: number, includeQuestions = false) => {
       },
       examQuestions: includeQuestions
         ? {
-            include: {
-              question: true
-            },
-            orderBy: { orderNumber: 'asc' }
-          }
+          include: {
+            question: {
+              select: questionSelect
+            }
+          },
+          orderBy: { orderNumber: 'asc' }
+        }
         : false,
       _count: {
         select: { examQuestions: true, userExams: true }
@@ -128,7 +163,7 @@ const updateExam = async (id: number, updateData: Prisma.ExamUpdateInput) => {
 };
 
 const startExam = async (examId: number, userId: number) => {
-  //Cek existensi ujian dan apakah tersedia atau tidak
+  // Cek existensi ujian dan apakah tersedia atau tidak
   const exam = await getExamById(examId);
 
   if (exam.startTime && new Date() < exam.startTime) {

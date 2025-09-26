@@ -1,12 +1,9 @@
 import { EmptyObject } from './common';
 
-export type UserRoleString = 'ADMIN' | 'PARTICIPANT';
-
 export interface RegisterRequestBody {
   name: string;
   email: string;
   password: string;
-  role?: UserRoleString;
 }
 
 export type RegisterRequestParams = EmptyObject;

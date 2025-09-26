@@ -1,5 +1,4 @@
-import { EmptyObject } from './common';
-import { UserRoleString } from './auth';
+import { EmptyObject, UserRoleString } from './common';
 
 export interface CreateUserRequestBody {
   email: string;

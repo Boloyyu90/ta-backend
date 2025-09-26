@@ -9,12 +9,12 @@ const router = express.Router();
 router
   .route('/')
   .post(
-    auth('manageQuestions'),
+    auth('manageQuestions'), // ✅ Already restricted to ADMIN
     validate(questionBankValidation.createQuestion),
     questionBankController.createQuestion
   )
   .get(
-    auth(),
+    auth('manageQuestions'), // ✅ FIXED: Changed from auth() to auth('manageQuestions')
     validate(questionBankValidation.getQuestions),
     questionBankController.getQuestions
   );
@@ -22,17 +22,17 @@ router
 router
   .route('/:id')
   .get(
-    auth(),
+    auth('manageQuestions'), // ✅ FIXED: Changed from auth() to auth('manageQuestions')
     validate(questionBankValidation.getQuestion),
     questionBankController.getQuestion
   )
   .patch(
-    auth('manageQuestions'),
+    auth('manageQuestions'), // ✅ Already restricted to ADMIN
     validate(questionBankValidation.updateQuestion),
     questionBankController.updateQuestion
   )
   .delete(
-    auth('manageQuestions'),
+    auth('manageQuestions'), // ✅ Already restricted to ADMIN
     validate(questionBankValidation.deleteQuestion),
     questionBankController.deleteQuestion
   );

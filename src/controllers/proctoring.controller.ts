@@ -2,6 +2,7 @@ import httpStatus from 'http-status';
 import catchAsync from '../utils/catchAsync';
 import { Request, Response } from 'express';
 import { proctoringService } from '../services';
+import ApiError from '../utils/ApiError';
 import {
   GetEventsParams,
   GetEventsRequestBody,
@@ -40,7 +41,14 @@ const getEvents = catchAsync(
     req: Request<GetEventsParams, unknown, GetEventsRequestBody, GetEventsRequestQuery>,
     res: Response<unknown>
   ) => {
-    const events = await proctoringService.getProctoringEvents(req.params.userExamId);
+    // Parse string to number
+    const userExamId = parseInt(req.params.userExamId, 10);
+
+    if (isNaN(userExamId)) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid user exam ID');
+    }
+
+    const events = await proctoringService.getProctoringEvents(userExamId);
     res.send(events);
   }
 );

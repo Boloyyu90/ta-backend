@@ -50,13 +50,25 @@ const getExams = catchAsync(
   }
 );
 
+/**
+ * Get exam by ID with role-based filtering
+ * SECURITY FIX: Pass user role to service for filtering sensitive data
+ */
 const getExam = catchAsync(
   async (
     req: Request<GetExamParams, unknown, unknown, GetExamQuery>,
     res: Response<unknown>
   ) => {
     const includeQuestions = req.query.include === 'questions';
-    const exam = await examService.getExamById(req.params.id, includeQuestions);
+    const userRole = (req.user as { role: string })?.role;
+
+    // Pass user role to service for proper filtering
+    const exam = await examService.getExamById(
+      req.params.id,
+      includeQuestions,
+      userRole as 'ADMIN' | 'PARTICIPANT'
+    );
+
     res.send(exam);
   }
 );

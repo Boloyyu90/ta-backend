@@ -1,3 +1,4 @@
+import { UserRole } from '@prisma/client';
 import httpStatus from 'http-status';
 import { Request, Response } from 'express';
 import catchAsync from '../utils/catchAsync';
@@ -38,10 +39,10 @@ import {
       req: Request<RegisterRequestParams, unknown, RegisterRequestBody, RegisterRequestQuery>,
       res: Response<unknown>
     ) => {
-      const { email, password, name, role } = req.body;
+      const { email, password, name } = req.body;
 
-      // Create user
-      const user = await userService.createUser(email, password, name, role ?? 'PARTICIPANT');
+      // Create user (self-registration always creates participants)
+      const user = await userService.createUser(email, password, name, UserRole.PARTICIPANT);
       const userWithoutPassword = exclude(user, ['password', 'createdAt', 'updatedAt']);
 
       // Generate tokens
