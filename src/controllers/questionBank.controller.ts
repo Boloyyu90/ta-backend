@@ -87,4 +87,4 @@ export default {
   getQuestion,
   updateQuestion,
   deleteQuestion
-};
+} as any;

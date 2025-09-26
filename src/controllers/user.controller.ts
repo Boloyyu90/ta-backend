@@ -99,4 +99,4 @@ export default {
   getUser,
   updateUser,
   deleteUser
-};
+} as any;

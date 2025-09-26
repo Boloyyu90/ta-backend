@@ -75,4 +75,4 @@ export default {
   finishExam,
   getUserResults,
   getAllResults
-};
+} as any;

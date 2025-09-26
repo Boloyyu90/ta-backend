@@ -192,5 +192,5 @@ import {
     resetPassword,
     sendVerificationEmail,
     verifyEmail,
-    testEmail // Add this
-  };
+    testEmail
+  } as any;

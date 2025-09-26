@@ -56,4 +56,4 @@ export default {
   recordEvent,
   getEvents,
   getStatistics
-};
+} as any;

@@ -104,4 +104,4 @@ export default {
   getExam,
   updateExam,
   startExam
-};
+} as any;
