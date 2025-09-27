@@ -1,5 +1,8 @@
 import { EmptyObject, UserRoleString } from './common';
 
+// ============================================
+// CREATE USER
+// ============================================
 export interface CreateUserRequestBody {
   email: string;
   password: string;
@@ -9,10 +12,22 @@ export interface CreateUserRequestBody {
 
 export type CreateUserRequestParams = EmptyObject;
 export type CreateUserRequestQuery = EmptyObject;
+export type CreateUserResponseBody = {
+  id: number;
+  email: string;
+  name: string;
+  role: UserRoleString;
+  isEmailVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
+// ============================================
+// GET USERS (LIST)
+// ============================================
 export interface GetUsersQuery {
   name?: string;
-  role?: string;
+  role?: UserRoleString;
   sortBy?: string;
   limit?: number;
   page?: number;
@@ -20,10 +35,40 @@ export interface GetUsersQuery {
 
 export type GetUsersParams = EmptyObject;
 export type GetUsersRequestBody = EmptyObject;
+export type GetUsersResponseBody = {
+  id: number;
+  email: string;
+  name: string;
+  role: UserRoleString;
+  isEmailVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}[];
 
-// ✅ FIXED: string bukan number
-export interface UserIdParams {
-  userId: string;
+// ============================================
+// GET USER (SINGLE)
+// ============================================
+export interface GetUserRequestParams {
+  userId: string; // ✅ Always string from Express
+}
+
+export type GetUserRequestQuery = EmptyObject;
+export type GetUserRequestBody = EmptyObject;
+export type GetUserResponseBody = {
+  id: number;
+  email: string;
+  name: string;
+  role: UserRoleString;
+  isEmailVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// ============================================
+// UPDATE USER
+// ============================================
+export interface UpdateUserRequestParams {
+  userId: string; // ✅ Always string from Express
 }
 
 export interface UpdateUserRequestBody {
@@ -32,9 +77,21 @@ export interface UpdateUserRequestBody {
   name?: string;
 }
 
+export type UpdateUserRequestQuery = EmptyObject;
+export type UpdateUserResponseBody = {
+  id: number;
+  email: string;
+  name: string;
+  role: UserRoleString;
+};
+
+// ============================================
+// DELETE USER
+// ============================================
+export interface DeleteUserRequestParams {
+  userId: string; // ✅ Always string from Express
+}
+
 export type DeleteUserRequestBody = EmptyObject;
 export type DeleteUserRequestQuery = EmptyObject;
-
-export type GetUserRequestParams = UserIdParams;
-export type UpdateUserRequestParams = UserIdParams;
-export type DeleteUserRequestParams = UserIdParams;
+export type DeleteUserResponseBody = void; // ✅ NO_CONTENT

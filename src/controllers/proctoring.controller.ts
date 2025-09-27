@@ -1,59 +1,99 @@
+// src/controllers/proctoring.controller.ts
 import httpStatus from 'http-status';
+import { RequestHandler } from 'express';
 import catchAsync from '../utils/catchAsync';
 import parseId from '../utils/parseId';
-import { Request, Response } from 'express';
 import { proctoringService } from '../services';
 import {
   GetEventsParams,
   GetEventsRequestBody,
   GetEventsRequestQuery,
+  GetEventsResponseBody,
   GetStatisticsParams,
   GetStatisticsQuery,
   GetStatisticsRequestBody,
+  GetStatisticsResponseBody,
   RecordEventRequestBody,
   RecordEventRequestParams,
-  RecordEventRequestQuery
+  RecordEventRequestQuery,
+  RecordEventResponseBody
 } from '../types/http/proctoring';
 
-const recordEvent = catchAsync(
-  async (
-    req: Request<RecordEventRequestParams, unknown, RecordEventRequestBody, RecordEventRequestQuery>,
-    res: Response<unknown>
-  ) => {
-    const { userExamId, eventType, metadata } = req.body;
-    const event = await proctoringService.recordProctoringEvent(
-      req.user!.id,
-      userExamId,
-      eventType,
-      metadata
-    );
-    res.status(httpStatus.CREATED).send(event);
-  }
-);
+// ============================================
+// INTERFACE DEFINITION
+// ============================================
+interface ProctoringController {
+  recordEvent: RequestHandler<
+    RecordEventRequestParams,
+    RecordEventResponseBody,
+    RecordEventRequestBody,
+    RecordEventRequestQuery
+  >;
+  getEvents: RequestHandler<
+    GetEventsParams,
+    GetEventsResponseBody,
+    GetEventsRequestBody,
+    GetEventsRequestQuery
+  >;
+  getStatistics: RequestHandler<
+    GetStatisticsParams,
+    GetStatisticsResponseBody,
+    GetStatisticsRequestBody,
+    GetStatisticsQuery
+  >;
+}
 
-const getEvents = catchAsync(
-  async (
-    req: Request<GetEventsParams, unknown, GetEventsRequestBody, GetEventsRequestQuery>,
-    res: Response<unknown>
-  ) => {
-    const userExamId = parseId(req.params.userExamId, 'user exam ID');
-    const events = await proctoringService.getProctoringEvents(userExamId);
-    res.send(events);
-  }
-);
+// ============================================
+// CONTROLLER IMPLEMENTATION
+// ============================================
 
-const getStatistics = catchAsync(
-  async (
-    req: Request<GetStatisticsParams, unknown, GetStatisticsRequestBody, GetStatisticsQuery>,
-    res: Response<unknown>
-  ) => {
-    const statistics = await proctoringService.getProctoringStatistics(req.query.examId);
-    res.send(statistics);
-  }
-);
+const recordEvent = catchAsync<
+  RecordEventRequestParams,
+  RecordEventResponseBody,
+  RecordEventRequestBody,
+  RecordEventRequestQuery
+>(async (req, res) => {
+  const { userExamId, eventType, metadata } = req.body;
+  const { id: actorUserId } = req.user as { id: number };
 
-export default {
+  const event = await proctoringService.recordProctoringEvent(
+    actorUserId,
+    userExamId,
+    eventType,
+    metadata
+  );
+
+  res.status(httpStatus.CREATED).send(event);
+});
+
+const getEvents = catchAsync<
+  GetEventsParams,
+  GetEventsResponseBody,
+  GetEventsRequestBody,
+  GetEventsRequestQuery
+>(async (req, res) => {
+  const userExamId = parseId(req.params.userExamId, 'user exam ID');
+  const events = await proctoringService.getProctoringEvents(userExamId);
+  res.send(events);
+});
+
+const getStatistics = catchAsync<
+  GetStatisticsParams,
+  GetStatisticsResponseBody,
+  GetStatisticsRequestBody,
+  GetStatisticsQuery
+>(async (req, res) => {
+  const statistics = await proctoringService.getProctoringStatistics(req.query.examId);
+  res.send(statistics);
+});
+
+// ============================================
+// TYPED EXPORT
+// ============================================
+const proctoringController: ProctoringController = {
   recordEvent,
   getEvents,
   getStatistics
-} as any;
+};
+
+export default proctoringController;

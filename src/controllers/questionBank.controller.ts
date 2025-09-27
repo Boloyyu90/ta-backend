@@ -1,6 +1,7 @@
+// src/controllers/questionBank.controller.ts
 import { Prisma } from '@prisma/client';
 import httpStatus from 'http-status';
-import { Request, Response } from 'express';
+import { RequestHandler } from 'express';
 import catchAsync from '../utils/catchAsync';
 import parseId from '../utils/parseId';
 import { questionBankService } from '../services';
@@ -8,83 +9,140 @@ import {
   CreateQuestionRequestBody,
   CreateQuestionRequestParams,
   CreateQuestionRequestQuery,
+  CreateQuestionResponseBody,
   DeleteQuestionRequestBody,
   DeleteQuestionRequestParams,
   DeleteQuestionRequestQuery,
+  DeleteQuestionResponseBody,
+  GetQuestionParams,
+  GetQuestionQuery,
+  GetQuestionRequestBody,
+  GetQuestionResponseBody,
   GetQuestionsParams,
   GetQuestionsQuery,
   GetQuestionsRequestBody,
-  QuestionIdParams,
-  UpdateQuestionRequestBody
+  GetQuestionsResponseBody,
+  UpdateQuestionRequestBody,
+  UpdateQuestionRequestParams,
+  UpdateQuestionRequestQuery,
+  UpdateQuestionResponseBody
 } from '../types/http/questionBank';
 
-const createQuestion = catchAsync(
-  async (
-    req: Request<CreateQuestionRequestParams, unknown, CreateQuestionRequestBody, CreateQuestionRequestQuery>,
-    res: Response<unknown>
-  ) => {
-    const question = await questionBankService.createQuestion(req.body);
-    res.status(httpStatus.CREATED).send(question);
-  }
-);
+// ============================================
+// INTERFACE DEFINITION
+// ============================================
+interface QuestionBankController {
+  createQuestion: RequestHandler<
+    CreateQuestionRequestParams,
+    CreateQuestionResponseBody,
+    CreateQuestionRequestBody,
+    CreateQuestionRequestQuery
+  >;
+  getQuestions: RequestHandler<
+    GetQuestionsParams,
+    GetQuestionsResponseBody,
+    GetQuestionsRequestBody,
+    GetQuestionsQuery
+  >;
+  getQuestion: RequestHandler<
+    GetQuestionParams,
+    GetQuestionResponseBody,
+    GetQuestionRequestBody,
+    GetQuestionQuery
+  >;
+  updateQuestion: RequestHandler<
+    UpdateQuestionRequestParams,
+    UpdateQuestionResponseBody,
+    UpdateQuestionRequestBody,
+    UpdateQuestionRequestQuery
+  >;
+  deleteQuestion: RequestHandler<
+    DeleteQuestionRequestParams,
+    DeleteQuestionResponseBody,
+    DeleteQuestionRequestBody,
+    DeleteQuestionRequestQuery
+  >;
+}
 
-const getQuestions = catchAsync(
-  async (
-    req: Request<GetQuestionsParams, unknown, GetQuestionsRequestBody, GetQuestionsQuery>,
-    res: Response<unknown>
-  ) => {
-    const filter = {
-      questionType: req.query.questionType,
-      limit: req.query.limit,
-      page: req.query.page
-    };
-    const result = await questionBankService.getQuestions(filter);
-    res.send(result);
-  }
-);
+// ============================================
+// CONTROLLER IMPLEMENTATION
+// ============================================
 
-const getQuestion = catchAsync(
-  async (req: Request<QuestionIdParams, unknown, unknown, unknown>, res: Response<unknown>) => {
-    const questionId = parseId(req.params.id, 'question ID');
-    const question = await questionBankService.getQuestionById(questionId);
-    res.send(question);
-  }
-);
+const createQuestion = catchAsync<
+  CreateQuestionRequestParams,
+  CreateQuestionResponseBody,
+  CreateQuestionRequestBody,
+  CreateQuestionRequestQuery
+>(async (req, res) => {
+  const question = await questionBankService.createQuestion(req.body);
+  res.status(httpStatus.CREATED).send(question);
+});
 
-const updateQuestion = catchAsync(
-  async (
-    req: Request<QuestionIdParams, unknown, UpdateQuestionRequestBody, unknown>,
-    res: Response<unknown>
-  ) => {
-    const questionId = parseId(req.params.id, 'question ID');
+const getQuestions = catchAsync<
+  GetQuestionsParams,
+  GetQuestionsResponseBody,
+  GetQuestionsRequestBody,
+  GetQuestionsQuery
+>(async (req, res) => {
+  const filter = {
+    questionType: req.query.questionType,
+    limit: req.query.limit,
+    page: req.query.page
+  };
+  const result = await questionBankService.getQuestions(filter);
+  res.send(result);
+});
 
-    const updateData: Prisma.QuestionBankUpdateInput = {};
-    if (req.body.content !== undefined) updateData.content = req.body.content;
-    if (req.body.options !== undefined) updateData.options = req.body.options;
-    if (req.body.correctAnswer !== undefined) updateData.correctAnswer = req.body.correctAnswer;
-    if (req.body.defaultScore !== undefined) updateData.defaultScore = req.body.defaultScore;
-    if (req.body.questionType !== undefined) updateData.questionType = req.body.questionType;
+const getQuestion = catchAsync<
+  GetQuestionParams,
+  GetQuestionResponseBody,
+  GetQuestionRequestBody,
+  GetQuestionQuery
+>(async (req, res) => {
+  const questionId = parseId(req.params.id, 'question ID');
+  const question = await questionBankService.getQuestionById(questionId);
+  res.send(question);
+});
 
-    const question = await questionBankService.updateQuestion(questionId, updateData);
-    res.send(question);
-  }
-);
+const updateQuestion = catchAsync<
+  UpdateQuestionRequestParams,
+  UpdateQuestionResponseBody,
+  UpdateQuestionRequestBody,
+  UpdateQuestionRequestQuery
+>(async (req, res) => {
+  const questionId = parseId(req.params.id, 'question ID');
 
-const deleteQuestion = catchAsync(
-  async (
-    req: Request<DeleteQuestionRequestParams, unknown, DeleteQuestionRequestBody, DeleteQuestionRequestQuery>,
-    res: Response<unknown>
-  ) => {
-    const questionId = parseId(req.params.id, 'question ID');
-    await questionBankService.deleteQuestion(questionId);
-    res.status(httpStatus.NO_CONTENT).send();
-  }
-);
+  const updateData: Prisma.QuestionBankUpdateInput = {};
+  if (req.body.content !== undefined) updateData.content = req.body.content;
+  if (req.body.options !== undefined) updateData.options = req.body.options;
+  if (req.body.correctAnswer !== undefined) updateData.correctAnswer = req.body.correctAnswer;
+  if (req.body.defaultScore !== undefined) updateData.defaultScore = req.body.defaultScore;
+  if (req.body.questionType !== undefined) updateData.questionType = req.body.questionType;
 
-export default {
+  const question = await questionBankService.updateQuestion(questionId, updateData);
+  res.send(question);
+});
+
+const deleteQuestion = catchAsync<
+  DeleteQuestionRequestParams,
+  DeleteQuestionResponseBody,
+  DeleteQuestionRequestBody,
+  DeleteQuestionRequestQuery
+>(async (req, res) => {
+  const questionId = parseId(req.params.id, 'question ID');
+  await questionBankService.deleteQuestion(questionId);
+  res.status(httpStatus.NO_CONTENT).send();
+});
+
+// ============================================
+// TYPED EXPORT
+// ============================================
+const questionBankController: QuestionBankController = {
   createQuestion,
   getQuestions,
   getQuestion,
   updateQuestion,
   deleteQuestion
-} as any;
+};
+
+export default questionBankController;

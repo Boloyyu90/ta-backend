@@ -1,38 +1,40 @@
+// src/utils/catchAsync.ts
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 
-type DefaultParams = Record<string, string>;
-type DefaultQuery = Record<string, unknown>;
-
-export type AsyncHandler<
-  P = DefaultParams,
-  ResBody = unknown,
-  ReqBody = unknown,
-  ReqQuery = DefaultQuery,
-  Locals extends Record<string, unknown> = Record<string, unknown>
-> = (
-  req: Request<P, ResBody, ReqBody, ReqQuery, Locals>,
-  res: Response<ResBody, Locals>,
-  next: NextFunction
-) => Promise<unknown>;
-
+/**
+ * Wrapper untuk async route handlers yang menangkap errors secara otomatis
+ *
+ * @template P - Route params type (default: any)
+ * @template ResBody - Response body type (default: any)
+ * @template ReqBody - Request body type (default: any)
+ * @template ReqQuery - Request query type (default: any)
+ * @template Locals - Response locals type (default: Record<string, any>)
+ *
+ * @example
+ * const handler = catchAsync<UserIdParams, UserResponseBody, UpdateUserRequestBody>(
+ *   async (req, res) => {
+ *     const userId = req.params.userId; // Type-safe!
+ *     const data = req.body; // Type-safe!
+ *     res.send({ user: data }); // Type-safe!
+ *   }
+ * );
+ */
 const catchAsync = <
-  P = DefaultParams,
-  ResBody = unknown,
-  ReqBody = unknown,
-  ReqQuery = DefaultQuery,
-  Locals extends Record<string, unknown> = Record<string, unknown>
+  P = any,
+  ResBody = any,
+  ReqBody = any,
+  ReqQuery = any,
+  Locals extends Record<string, any> = Record<string, any>
 >(
-  handler: AsyncHandler<P, ResBody, ReqBody, ReqQuery, Locals>
+  fn: (
+    req: Request<P, ResBody, ReqBody, ReqQuery, Locals>,
+    res: Response<ResBody, Locals>,
+    next: NextFunction
+  ) => Promise<any>
 ): RequestHandler<P, ResBody, ReqBody, ReqQuery, Locals> => {
-  const wrapped: RequestHandler<P, ResBody, ReqBody, ReqQuery, Locals> = (
-    req,
-    res,
-    next
-  ) => {
-    void Promise.resolve(handler(req, res, next)).catch(next);
+  return (req, res, next) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
   };
-
-  return wrapped;
 };
 
 export default catchAsync;
